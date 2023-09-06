@@ -1,0 +1,43 @@
+25/8
+- keys:
+	+ chronological order of different scenes is important -> temporal queries
+	+ systems that allowed to view many images help to gain better overview of results
+	+ newest developments for co-embeddings of visual and textual data
+	+ increase search speed using approximate nearest neighbor techniques
+- works:
+	+ clean up UI by removing unnecessary components -> optimize for temporal search
+	+ an improved shot-detection algorithm
+	+ introducing a CLIP model that allows rich text input
+
+- vấn đề của mình:
+	+ nếu train lại text encoder và similarity encoder thì 
+		- không có dataset về text
+		- metrics để đánh giá: cosine similarity
+	https://paperswithcode.com/paper/clip4clip-an-empirical-study-of-clip-for-end
+
+
+- tối nay:
+	+ (done) generate một số prompt bằng chat-gpt
+		"Sunset over city skyline, golden hues."
+		"Kids playing soccer in neighborhood park."
+		"Surfer rides waves, skillful balance displayed."
+		"Chef flames dish, culinary artistry evident."
+		"Newlyweds dance, joyous celebration under stars."
+		"Construction site hustle, cranes and workers."
+		"Baby takes first steps, family cheers."
+		"Fireworks burst, night sky alive with colors."
+		"Hiker conquers peak, breathtaking panoramic view."
+		"Marketplace bustles, vendors showcase diverse wares."
+
+	+ (done) chạy qdrant backend
+	+ (done) thử 2 case:
+		- chạy sort by similarity tự động
+		- chạy model để tạo embeddings cho prompts
+		-> so sánh 2 case này
+	+ (bỏ) chạy thêm 1 model khác ngon hơn clip thử
+	+ thử case: dùng filtering các thứ (vd như sử dụng thêm filter cho detection labels, which requires breaking prompt into nouns of objects)
+------------------------------------------------
+29/8
+- 51 xuất ra các cặp (A, B) dưới dạng vị trí video, vị trí frame
+- chuyển các cặp này cho UI để UI show video snippet ra
+- video snippet là đoạn video từ A đến B (maybe thêm vài frame trước A và sau B), có thể bấm pause để chọn frame ưng ý, sau khi pause thì UI tự hiện ra stt frame luôn
