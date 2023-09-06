@@ -27,8 +27,11 @@ class ImageApp:
         self.dataset = dataset
         self.image_labels_a = []
         self.image_labels_b = []
+        self.image_labels_pair = []
         self.timeline_labels = []
         self.root.title("Image Viewer")
+        self.view_a = None
+        self.view_b = None
 
         # FOR INPUT
         # ở đây ta có 2 frame ở vị trí top, mỗi frame ứng với 1 dòng label + 1 ô nhập text + 1 nút search
@@ -47,6 +50,9 @@ class ImageApp:
 
         self.image_display_b = tk.Frame(self.image_display, background="red")
         self.image_display_b.grid(row=0, column=1)
+        
+        self.image_display_c = tk.Frame(self.image_display, background="red")
+        self.image_display_c.grid(row=0, column=2)
 
         # 3 search buttons at the bottom
         self.search_a_next_button = tk.Button(self.image_display, text="Search next", command=self.search_a_next)
@@ -55,8 +61,8 @@ class ImageApp:
         self.search_b_prev_button = tk.Button(self.image_display, text="Search prev", command=self.search_b_prev)
         self.search_b_prev_button.grid(row=1, column=1)
 
-        self.search_both_button = tk.Button(self.image_display, text="Search both", command=self.search_both)
-        self.search_both_button.grid(row=2, column=0, columnspan=2)
+        self.search_pair_button = tk.Button(self.image_display, text="Search pair", command=self.search_pair)
+        self.search_pair_button.grid(row=2, column=0, columnspan=2)
 
         
 
@@ -68,22 +74,31 @@ class ImageApp:
         self.image_display_b_canvas = tk.Canvas(self.image_display_b, background="cyan")
         self.image_display_b_canvas.pack(side="left", fill="both", expand=True)
 
+        self.image_display_c_canvas = tk.Canvas(self.image_display_c, background="magenta")
+        self.image_display_c_canvas.pack(side="left", fill="both", expand=True)
+
         # Create a Scrollbar for the Canvas
         self.scrollbar_a = tk.Scrollbar(self.image_display_a, orient="vertical", command=self.image_display_a_canvas.yview)
         self.scrollbar_a.pack(side="right", fill="y")
         
         self.scrollbar_b = tk.Scrollbar(self.image_display_b, orient="vertical", command=self.image_display_b_canvas.yview)
         self.scrollbar_b.pack(side="right", fill="y")
+        
+        self.scrollbar_c = tk.Scrollbar(self.image_display_c, orient="vertical", command=self.image_display_c_canvas.yview)
+        self.scrollbar_c.pack(side="right", fill="y")
 
         # # Configure the Canvas to use the Scrollbar
         self.image_display_a_canvas.configure(yscrollcommand=self.scrollbar_a.set)
         self.image_display_b_canvas.configure(yscrollcommand=self.scrollbar_b.set)
+        self.image_display_c_canvas.configure(yscrollcommand=self.scrollbar_c.set)
 
         # Create a Frame inside the Canvas to hold the Label
         self.image_display_a_frame = tk.Frame(self.image_display_a_canvas, background='green')
         self.image_display_a_canvas.create_window((0, 0), window=self.image_display_a_frame, anchor="nw")
         self.image_display_b_frame = tk.Frame(self.image_display_b_canvas, background='green')
         self.image_display_b_canvas.create_window((0, 0), window=self.image_display_b_frame, anchor="nw")
+        self.image_display_c_frame = tk.Frame(self.image_display_c_canvas, background='yellow')
+        self.image_display_c_canvas.create_window((0, 0), window=self.image_display_c_frame, anchor="nw")
 
         # Bind the canvas to a function that updates scroll region
         # self.image_display_canvas.bind("<Configure>", self.on_canvas_configure)
@@ -93,6 +108,9 @@ class ImageApp:
         
         self.image_display_b_frame.update()
         self.image_display_b_canvas.configure(scrollregion=self.image_display_b_canvas.bbox('all'))
+
+        self.image_display_c_frame.update()
+        self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
 
 
 
@@ -157,8 +175,59 @@ class ImageApp:
     def search_b_prev(self):
         print('prev')
 
-    def search_both(self):
-        print('both')
+    def search_pair(self, frame_epsilon=10):
+        results = []
+        print(len(self.view_a))
+        print(len(self.view_b))
+
+        for seqA in self.view_a:
+            for seqB in self.view_b:
+                if (seqA.video == seqB.video):
+                    frameA = (int)(seqA.frameid)
+                    frameB = (int)(seqB.frameid)
+                    if (frameA < frameB and frameB - frameA < frame_epsilon):
+                        score = (float)(seqA.similarity) + (float)(seqB.similarity)
+                        heapq.heappush(results, (score, {
+                            'filepathA': seqA.filepath,
+                            'filepathB': seqB.filepath,
+                            'video': seqA.video,
+                            'seqA': seqA.frameid,
+                            'seqB': seqB.frameid,
+                        }))
+
+        for i, path in enumerate(results):
+            imageA = Image.open(results[i]['filepathA']).resize((200, 200), Image.LANCZOS)
+            imageB = Image.open(results[i]['filepathB']).resize((200, 200), Image.LANCZOS)
+            photoA = ImageTk.PhotoImage(imageA)
+            photoB = ImageTk.PhotoImage(imageB)
+            self.image_labels_pair[i][0].configure(image=photoA)
+            self.image_labels_pair[i][1].configure(image=photoB)
+            self.image_labels_pair[i][0].image = photoA
+            self.image_labels_pair[i][1].image = photoB
+            # self.image_labels_pair[i].bind("<Button-1>", lambda e, path=results[i]: self.on_image_click(path))  # chua hieu
+        # while (len(self.image_labels) < len(image_paths)):
+
+        for i in range(len(self.image_labels_pair), len(results)):
+            print(results[i]['filepathA'], results[i]['filepathB'])
+            imageA = Image.open(results[i]['filepathA']).resize((200, 200), Image.LANCZOS)
+            imageB = Image.open(results[i]['filepathB']).resize((200, 200), Image.LANCZOS)
+            photoA = ImageTk.PhotoImage(imageA)
+            photoB = ImageTk.PhotoImage(imageB)
+
+            labelA = tk.Label(self.image, image=photoA)
+            labelA.configure(image=photoA)
+            labelA.image = photoA
+            labelA.grid(row=i//3, column=0)
+            # label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path))   # chua hieu
+
+            labelB = tk.Label(self.image, image=photoB)
+            labelB.configure(image=photoB)
+            labelB.image = photoA
+            labelB.grid(row=i//3, column=1)
+
+            self.image_labels_pair.append([labelA, labelB])
+
+        # return results
 
     def search_sequence_a(self):
         text_a = self.text_a.get()
@@ -175,12 +244,6 @@ class ImageApp:
         return value
     
     def search(self, text, panel):
-        view = self.dataset.sort_by_similarity(text, k=30, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
-        images_paths = []
-
-        for seq in view:
-            curVideo, curFrame = seq.video, seq.frameid
-            images_paths.append(seq.filepath)
 
         if panel == 'a':
             image_display_frame = self.image_display_a_frame
@@ -189,9 +252,22 @@ class ImageApp:
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
+        view = self.dataset.sort_by_similarity(text, k=30, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+        images_paths = []
+
+        for seq in view:
+            curVideo, curFrame = seq.video, seq.frameid
+            images_paths.append(seq.filepath)
+
         self.update_image_display(images_paths, panel)
         image_display_frame.update()
         image_display_canvas.configure(scrollregion=image_display_canvas.bbox('all'))
+
+        if panel == 'a':
+            self.view_a = view
+        elif panel == 'b':
+            self.view_b = view
+
 
     def update_image_display(self, image_paths, panel):
 
