@@ -30,28 +30,42 @@ class ImageApp:
         self.timeline_labels = []
         self.root.title("Image Viewer")
 
+        # FOR INPUT
+        # ở đây ta có 2 frame ở vị trí top, mỗi frame ứng với 1 dòng label + 1 ô nhập text + 1 nút search
         self.sequence_a_frame = tk.Frame(self.root)
         self.sequence_a_frame.pack(side="top")
 
         self.sequence_b_frame = tk.Frame(self.root)
         self.sequence_b_frame.pack(side="top")
 
+        # image_display: là cái frame được dùng như grid để bố trí các thành phần trên cửa sổ
+        self.image_display = tk.Frame(self.root)
+        self.image_display.pack(side="left", padx=10)
 
-        # self.image_display = tk.Frame(self.root)
-        # self.image_display.pack(side="left", padx=10)
-        self.image_display_a = tk.Frame(self.root, width=200, height=100)
-        self.image_display_a.pack(side="left", padx=15)
-        # self.image_display_a.place(x=10, y=10)
+        self.image_display_a = tk.Frame(self.image_display, background="red")
+        self.image_display_a.grid(row=0, column=0)
 
-        self.image_display_b = tk.Frame(self.root, width=200, height=100)
-        self.image_display_b.pack(side="left", padx=15)
-        # self.image_display_b.place(x=110, y=10)
+        self.image_display_b = tk.Frame(self.image_display, background="red")
+        self.image_display_b.grid(row=0, column=1)
 
-        # Create a Canvas to hold the Label
-        self.image_display_a_canvas = tk.Canvas(self.image_display_a)
-        self.image_display_a_canvas.pack(side="left", fill="both", expand=True)
+        # 3 search buttons at the bottom
+        self.search_a_next_button = tk.Button(self.image_display, text="Search next", command=self.search_a_next)
+        self.search_a_next_button.grid(row=1, column=0)
+    
+        self.search_b_prev_button = tk.Button(self.image_display, text="Search prev", command=self.search_b_prev)
+        self.search_b_prev_button.grid(row=1, column=1)
+
+        self.search_both_button = tk.Button(self.image_display, text="Search both", command=self.search_both)
+        self.search_both_button.grid(row=2, column=0, columnspan=2)
+
         
-        self.image_display_b_canvas = tk.Canvas(self.image_display_b)
+
+
+        # FOR IMAGE DISPLAYING
+        self.image_display_a_canvas = tk.Canvas(self.image_display_a, background="blue")
+        self.image_display_a_canvas.pack(side="left", fill="both", expand=True)
+
+        self.image_display_b_canvas = tk.Canvas(self.image_display_b, background="cyan")
         self.image_display_b_canvas.pack(side="left", fill="both", expand=True)
 
         # Create a Scrollbar for the Canvas
@@ -66,9 +80,9 @@ class ImageApp:
         self.image_display_b_canvas.configure(yscrollcommand=self.scrollbar_b.set)
 
         # Create a Frame inside the Canvas to hold the Label
-        self.image_display_a_frame = tk.Frame(self.image_display_a_canvas)
+        self.image_display_a_frame = tk.Frame(self.image_display_a_canvas, background='green')
         self.image_display_a_canvas.create_window((0, 0), window=self.image_display_a_frame, anchor="nw")
-        self.image_display_b_frame = tk.Frame(self.image_display_b_canvas)
+        self.image_display_b_frame = tk.Frame(self.image_display_b_canvas, background='green')
         self.image_display_b_canvas.create_window((0, 0), window=self.image_display_b_frame, anchor="nw")
 
         # Bind the canvas to a function that updates scroll region
@@ -135,19 +149,7 @@ class ImageApp:
         # self.open_image_button = tk.Button(self.image_info_frame, text="Open Image", command=self.open_image)
         # self.open_image_button.pack(side="left")
 
-    # 3 search buttons at the bottom
 
-        self.search_a_next_frame = tk.Frame(self.root)
-        self.search_a_next_button = tk.Button(self.root, text="Search next", command=self.search_a_next)
-        self.search_a_next_button.pack(side="left", padx=15)
-
-        self.search_b_prev_frame = tk.Frame(self.root)
-        self.search_b_prev_button = tk.Button(self.root, text="Search previous", command=self.search_b_prev)
-        self.search_b_prev_button.pack(side="left", padx=15)
-
-        self.search_both_frame = tk.Frame(self.root)
-        self.search_both_button = tk.Button(self.root, text="Search both", command=self.search_both)
-        self.search_both_button.pack(side="left", anchor="sw")
 
     def search_a_next(self):
         print('next')
