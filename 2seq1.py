@@ -32,6 +32,10 @@ class ImageApp:
         self.root.title("Image Viewer")
         self.view_a = None
         self.view_b = None
+        
+        self.screenwidth = self.root.winfo_screenwidth()
+        self.screenheight = self.root.winfo_screenheight()
+        self.framewidth_unit = int(self.screenwidth / 9 * 0.95)
 
         # FOR INPUT
         # ở đây ta có 2 frame ở vị trí top, mỗi frame ứng với 1 dòng label + 1 ô nhập text + 1 nút search
@@ -41,18 +45,24 @@ class ImageApp:
         self.sequence_b_frame = tk.Frame(self.root)
         self.sequence_b_frame.pack(side="top")
 
+
+
         # image_display: là cái frame được dùng như grid để bố trí các thành phần trên cửa sổ
         self.image_display = tk.Frame(self.root)
         self.image_display.pack(side="left", padx=10)
 
-        self.image_display_a = tk.Frame(self.image_display, background="red")
+        self.image_display_a = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500, background="red")
         self.image_display_a.grid(row=0, column=0)
 
-        self.image_display_b = tk.Frame(self.image_display, background="red")
+        self.image_display_b = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500, background="green")
         self.image_display_b.grid(row=0, column=1)
         
-        self.image_display_c = tk.Frame(self.image_display, background="red")
+        self.image_display_c = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500, background="red")
         self.image_display_c.grid(row=0, column=2)
+
+        self.image_display_d = tk.Frame(self.image_display, width=3*self.framewidth_unit, height=500, background="green")
+        self.image_display_d.grid(row=0, column=3)
+
 
         # 3 search buttons at the bottom
         self.search_a_next_button = tk.Button(self.image_display, text="Search next", command=self.search_a_next)
@@ -68,14 +78,17 @@ class ImageApp:
 
 
         # FOR IMAGE DISPLAYING
-        self.image_display_a_canvas = tk.Canvas(self.image_display_a, background="blue")
+        self.image_display_a_canvas = tk.Canvas(self.image_display_a, width=2*self.framewidth_unit, height=500, background="blue")
         self.image_display_a_canvas.pack(side="left", fill="both", expand=True)
 
-        self.image_display_b_canvas = tk.Canvas(self.image_display_b, background="cyan")
+        self.image_display_b_canvas = tk.Canvas(self.image_display_b, width=2*self.framewidth_unit, height=500, background="cyan")
         self.image_display_b_canvas.pack(side="left", fill="both", expand=True)
 
-        self.image_display_c_canvas = tk.Canvas(self.image_display_c, background="magenta")
+        self.image_display_c_canvas = tk.Canvas(self.image_display_c, width=2*self.framewidth_unit, height=500, background="magenta")
         self.image_display_c_canvas.pack(side="left", fill="both", expand=True)
+
+        self.image_display_d_canvas = tk.Canvas(self.image_display_d, width=3*self.framewidth_unit, height=500, background="blue")
+        self.image_display_d_canvas.pack(side="left", fill="both", expand=True)
 
         # Create a Scrollbar for the Canvas
         self.scrollbar_a = tk.Scrollbar(self.image_display_a, orient="vertical", command=self.image_display_a_canvas.yview)
@@ -87,10 +100,14 @@ class ImageApp:
         self.scrollbar_c = tk.Scrollbar(self.image_display_c, orient="vertical", command=self.image_display_c_canvas.yview)
         self.scrollbar_c.pack(side="right", fill="y")
 
+        self.scrollbar_d = tk.Scrollbar(self.image_display_d, orient="vertical", command=self.image_display_d_canvas.yview)
+        self.scrollbar_d.pack(side="right", fill="y")
+
         # # Configure the Canvas to use the Scrollbar
         self.image_display_a_canvas.configure(yscrollcommand=self.scrollbar_a.set)
         self.image_display_b_canvas.configure(yscrollcommand=self.scrollbar_b.set)
         self.image_display_c_canvas.configure(yscrollcommand=self.scrollbar_c.set)
+        self.image_display_d_canvas.configure(yscrollcommand=self.scrollbar_d.set)
 
         # Create a Frame inside the Canvas to hold the Label
         self.image_display_a_frame = tk.Frame(self.image_display_a_canvas, background='green')
@@ -99,6 +116,8 @@ class ImageApp:
         self.image_display_b_canvas.create_window((0, 0), window=self.image_display_b_frame, anchor="nw")
         self.image_display_c_frame = tk.Frame(self.image_display_c_canvas, background='yellow')
         self.image_display_c_canvas.create_window((0, 0), window=self.image_display_c_frame, anchor="nw")
+        self.image_display_d_frame = tk.Frame(self.image_display_d_canvas, background='red')
+        self.image_display_d_canvas.create_window((0, 0), window=self.image_display_d_frame, anchor="nw")
 
         # Bind the canvas to a function that updates scroll region
         # self.image_display_canvas.bind("<Configure>", self.on_canvas_configure)
@@ -112,6 +131,8 @@ class ImageApp:
         self.image_display_c_frame.update()
         self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
 
+        self.image_display_d_frame.update()
+        self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
 
 
 
@@ -176,15 +197,25 @@ class ImageApp:
         print('prev')
 
     def search_pair(self, frame_epsilon=10):
+        
+        # Xóa các ảnh của query trước đó
+        for label in self.image_display_c_frame.winfo_children():
+            if isinstance(label, tk.Label):
+                label.destroy()
+
+        # Khởi tạo danh sách kết quả
+        self.image_labels_pair = []
         results = []
         print(len(self.view_a))
         print(len(self.view_b))
 
+        # Make pairs
         for seqA in self.view_a:
             for seqB in self.view_b:
                 if (seqA.video == seqB.video):
                     frameA = (int)(seqA.frameid)
                     frameB = (int)(seqB.frameid)
+                    print(seqA.video, frameA, frameB)
                     if (frameA < frameB and frameB - frameA < frame_epsilon):
                         score = (float)(seqA.similarity) + (float)(seqB.similarity)
                         heapq.heappush(results, (score, {
@@ -194,40 +225,58 @@ class ImageApp:
                             'seqA': seqA.frameid,
                             'seqB': seqB.frameid,
                         }))
+                    print(len(results))
 
-        for i, path in enumerate(results):
-            imageA = Image.open(results[i]['filepathA']).resize((200, 200), Image.LANCZOS)
-            imageB = Image.open(results[i]['filepathB']).resize((200, 200), Image.LANCZOS)
+        
+        
+
+        # for i, path in enumerate(self.image_labels_pair):
+            
+        #     pathA = results[i][1]['filepathA']
+        #     pathB = results[i][1]['filepathB']
+        #     print(pathA, pathB)
+
+        #     imageA = Image.open(pathA).resize((160, 90), Image.LANCZOS)
+        #     imageB = Image.open(pathB).resize((160, 90), Image.LANCZOS)
+        #     photoA = ImageTk.PhotoImage(imageA)
+        #     photoB = ImageTk.PhotoImage(imageB)
+
+        #     self.image_labels_pair[i][0].configure(image=photoA)
+        #     self.image_labels_pair[i][1].configure(image=photoB)
+        #     self.image_labels_pair[i][0].image = photoA
+        #     self.image_labels_pair[i][1].image = photoB
+        #     self.image_labels_pair[i][0].bind("<Button-1>", lambda e, path=pathA: self.on_image_click(path))  # chua hieu
+        #     self.image_labels_pair[i][1].bind("<Button-1>", lambda e, path=pathB: self.on_image_click(path))  # chua hieu
+        # # while (len(self.image_labels) < len(image_paths)):
+
+        for i in range(len(results)):
+
+            pathA = results[i][1]['filepathA']
+            pathB = results[i][1]['filepathB']
+            print(pathA, pathB)
+
+            imageA = Image.open(pathA).resize((160, 90), Image.LANCZOS)
+            imageB = Image.open(pathB).resize((160, 90), Image.LANCZOS)
             photoA = ImageTk.PhotoImage(imageA)
             photoB = ImageTk.PhotoImage(imageB)
-            self.image_labels_pair[i][0].configure(image=photoA)
-            self.image_labels_pair[i][1].configure(image=photoB)
-            self.image_labels_pair[i][0].image = photoA
-            self.image_labels_pair[i][1].image = photoB
-            # self.image_labels_pair[i].bind("<Button-1>", lambda e, path=results[i]: self.on_image_click(path))  # chua hieu
-        # while (len(self.image_labels) < len(image_paths)):
 
-        for i in range(len(self.image_labels_pair), len(results)):
-            print(results[i]['filepathA'], results[i]['filepathB'])
-            imageA = Image.open(results[i]['filepathA']).resize((200, 200), Image.LANCZOS)
-            imageB = Image.open(results[i]['filepathB']).resize((200, 200), Image.LANCZOS)
-            photoA = ImageTk.PhotoImage(imageA)
-            photoB = ImageTk.PhotoImage(imageB)
-
-            labelA = tk.Label(self.image, image=photoA)
+            labelA = tk.Label(self.image_display_c_frame, image=photoA)
             labelA.configure(image=photoA)
             labelA.image = photoA
-            labelA.grid(row=i//3, column=0)
-            # label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path))   # chua hieu
+            labelA.grid(row=i, column=0)
+            labelA.bind("<Button-1>", lambda e, path=pathA: self.on_image_click(path))   # chua hieu
 
-            labelB = tk.Label(self.image, image=photoB)
+            labelB = tk.Label(self.image_display_c_frame, image=photoB)
             labelB.configure(image=photoB)
-            labelB.image = photoA
-            labelB.grid(row=i//3, column=1)
+            labelB.image = photoB
+            labelB.grid(row=i, column=1)
+            labelB.bind("<Button-1>", lambda e, path=pathB: self.on_image_click(path))   # chua hieu
 
             self.image_labels_pair.append([labelA, labelB])
+            print("Number of pairs:", len(self.image_labels_pair))
 
-        # return results
+        self.image_display_c_frame.update()
+        self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
 
     def search_sequence_a(self):
         text_a = self.text_a.get()
@@ -274,33 +323,37 @@ class ImageApp:
         image_labels = None
         image_display_frame = None
         if panel == 'a':
+            self.image_labels_a = []
             image_labels = self.image_labels_a
             image_display_frame = self.image_display_a_frame
         elif panel == 'b':
+            self.image_labels_b = []
             image_labels = self.image_labels_b
             image_display_frame = self.image_display_b_frame
 
-        for i, path in enumerate(image_labels):
-            image = Image.open(image_paths[i])
-            image = image.resize((200, 200), Image.LANCZOS)
-            photo = ImageTk.PhotoImage(image)
-            image_labels[i].configure(image=photo)
-            image_labels[i].image = photo
-            self.image_labels[i].bind("<Button-1>", lambda e, path=image_paths[i]: self.on_image_click(path))
-        # while (len(self.image_labels) < len(image_paths)):
+        # for i, path in enumerate(image_labels):
+        #     image = Image.open(image_paths[i])
+        #     image = image.resize((160, 90), Image.LANCZOS)
+        #     photo = ImageTk.PhotoImage(image)
+        #     image_labels[i].configure(image=photo)
+        #     image_labels[i].image = photo
+        #     self.image_labels[i].bind("<Button-1>", lambda e, path=image_paths[i]: self.on_image_click(path))
+        # # while (len(self.image_labels) < len(image_paths)):
 
-        for i in range(len(image_labels), len(image_paths)):
+        for i in range(len(image_paths)):
             path = image_paths[i]
             print(path)
             image = Image.open(path)
-            image = image.resize((200, 200), Image.LANCZOS)
+            image = image.resize((160, 90), Image.LANCZOS)
             photo = ImageTk.PhotoImage(image)
             label = tk.Label(image_display_frame, image=photo)
             label.configure(image=photo)
             label.image = photo
-            label.grid(row=i//3, column=i%3)
+            label.grid(row=i//2, column=i%2)
             label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path))
             image_labels.append(label)
+
+            
 
     # def search(self, textA, textB):
     #     next_frames_search_count = self.get_slider_value()
@@ -377,7 +430,7 @@ class ImageApp:
         #     if (i >= len(next_images_paths)):
         #         break
         #     image = Image.open(next_images_paths[i])
-        #     image = image.resize((200, 200), Image.LANCZOS)
+        #     image = image.resize((160, 90), Image.LANCZOS)
         #     photo = ImageTk.PhotoImage(image)
         #     self.timeline_labels[i].configure(image=photo)
         #     self.timeline_labels[i].image = photo
@@ -388,7 +441,7 @@ class ImageApp:
         #     path = next_images_paths[i]
         #     print(path)
         #     image = Image.open(path)
-        #     image = image.resize((200, 200), Image.LANCZOS)
+        #     image = image.resize((160, 90), Image.LANCZOS)
         #     photo = ImageTk.PhotoImage(image)
         #     label = tk.Label(self.timeline_frame, image=photo)
 
@@ -402,7 +455,7 @@ class ImageApp:
 
     #     for i, pathe in enumerate(self.image_labels):
     #         image = Image.open(image_paths[i])
-    #         image = image.resize((200, 200), Image.LANCZOS)
+    #         image = image.resize((160, 90), Image.LANCZOS)
     #         photo = ImageTk.PhotoImage(image)
     #         self.image_labels[i].configure(image=photo)
     #         self.image_labels[i].image = photo
@@ -413,12 +466,12 @@ class ImageApp:
     #         path = image_paths[i]
     #         print(path)
     #         image = Image.open(path)
-    #         image = image.resize((200, 200), Image.LANCZOS)
+    #         image = image.resize((160, 90), Image.LANCZOS)
     #         photo = ImageTk.PhotoImage(image)
     #         label = tk.Label(self.image_display_frame, image=photo)
     #         label.configure(image=photo)
     #         label.image = photo
-    #         label.grid(row=i//3, column=i%3)
+    #         label.grid(row=i//2, column=i%2)
     #         label.bind("<Button-1>", lambda e, path=path, next_image_path=next_images_paths[i]: self.on_image_click(path, next_image_path))
     #         self.image_labels.append(label)
 
