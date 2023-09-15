@@ -4,13 +4,13 @@ import csv
 def parse_direc(path):
     # Given directory string
     directory_string = path
-
     # Split the string into components
     parts = directory_string.split(os.sep)
 
     # Extract the video name and frame name
-    video_name = parts[-3]
+    video_name = parts[-2]
     frame_name_with_extension = parts[-1]
+    print(video_name, frame_name_with_extension)
 
     # Remove the file extension to get the frame name without extension
     frame_name = os.path.splitext(frame_name_with_extension)[0]
@@ -18,12 +18,12 @@ def parse_direc(path):
     # Print the extracted values
     return {
         "video_name" : video_name,
-        "kframe" : frame_name
+        "kframe" : int(frame_name)
     }
     # print("Video Name:", video_name)
     # print("Frame Name:", frame_name)
 
-def get_frame_info(video_name, keyframe_name, csv_folder = "E:\\AIChallenge\\map-keyframes"):
+def get_frame_info(video_name, keyframe_name, csv_folder = "E:\\2023 HCM AI CHALLENGE\\map-keyframes"):
     # Xác định tên file CSV tương ứng với video
     csv_file_name = f"{video_name}.csv"
     csv_file_path = os.path.join(csv_folder, csv_file_name)
@@ -37,7 +37,7 @@ def get_frame_info(video_name, keyframe_name, csv_folder = "E:\\AIChallenge\\map
 
         for row in csv_reader:
             frame_idx = int(row['n'])
-            keyframe_file_idx = int(keyframe_name.split('.')[0])
+            keyframe_file_idx = keyframe_name
             
             if frame_idx == keyframe_file_idx:
                 return {
@@ -47,15 +47,15 @@ def get_frame_info(video_name, keyframe_name, csv_folder = "E:\\AIChallenge\\map
 
     return None  # Không tìm thấy thông tin cho keyframe này
 
-# # Sử dụng hàm
-# video_name = "L01_V001"
-# keyframe_name = "0005.jpg"
-# csv_folder = "..\map-keyframes"
-# frame_info = get_frame_info(video_name, keyframe_name, csv_folder)
+# Sử dụng hàm
+video_name = "L01_V001"
+keyframe_name = 5
+csv_folder = "E:\\2023 HCM AI CHALLENGE\\map-keyframes"
+frame_info = get_frame_info(video_name, keyframe_name, csv_folder)
 
-# if frame_info is not None:
-#     print(f"Video: {video_name}, Keyframe: {keyframe_name}")
-#     print(f"frame_idx: {frame_info['frame_idx']}")
-#     # print(f"pts_time: {frame_info['pts_time']}")
-# else:
-#     print(f"Không tìm thấy thông tin cho Video: {video_name}, Keyframe: {keyframe_name}")
+if frame_info is not None:
+    print(f"Video: {video_name}, Keyframe: {keyframe_name}")
+    print(f"frame_idx: {frame_info['frame_idx']}")
+    # print(f"pts_time: {frame_info['pts_time']}")
+else:
+    print(f"Không tìm thấy thông tin cho Video: {video_name}, Keyframe: {keyframe_name}")

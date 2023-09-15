@@ -12,9 +12,14 @@ import json
 import os
 
 import heapq
+from mapping_keyframe import get_frame_info, parse_direc
+from extract_frame import extract_frames
 
 # to do
 # image_folder = 
+
+selected_1_img = ""
+selected_2_img = ""
 
 class ImageApp:
 
@@ -189,13 +194,51 @@ class ImageApp:
         # self.open_image_button.pack(side="left")
 
 
-
     def search_a_next(self):
         print('next')
+        if selected_1_img == "":
+            print("a: No image select")
+            return False
+        
+        parse_res = parse_direc(selected_1_img)
+        video_name = parse_res['video_name']
+        key_frame = parse_res['kframe']
+
+        #Lấy frameidx của hình được select
+        frame_idx = get_frame_info(video_name=video_name, keyframe_name=key_frame)['frame_idx']
+        images = []
+        print("Frame index: ", frame_idx)
+
+        #Lấy các frameidx từ video ra
+        images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_after= 30, frame_stride=15)
+        #Hiển thị lên panel
+        self.update_image_display_from_ImageTK(images, panel="c")
+        self.image_display_c_frame.update()
+        self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
+
 
     def search_b_prev(self):
         print('prev')
+        if selected_2_img == "":
+            print("b: No image select")
+            return False
+        
+        parse_res = parse_direc(selected_2_img)
+        video_name = parse_res['video_name']
+        key_frame = parse_res['kframe']
 
+        #Lấy frameidx của hình được select
+        frame_idx = get_frame_info(video_name=video_name, keyframe_name=key_frame)['frame_idx']
+        images = []
+        print("Frame index: ", frame_idx)
+       
+        images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_before= 30, frame_stride=15)
+
+        #Hiển thị lên panel
+        self.update_image_display_from_ImageTK(images, panel="c")
+        self.image_display_c_frame.update()
+        self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
+        
     def search_pair(self, frame_epsilon=10):
         
         # Xóa các ảnh của query trước đó
@@ -227,28 +270,6 @@ class ImageApp:
                         }))
                     print(len(results))
 
-        
-        
-
-        # for i, path in enumerate(self.image_labels_pair):
-            
-        #     pathA = results[i][1]['filepathA']
-        #     pathB = results[i][1]['filepathB']
-        #     print(pathA, pathB)
-
-        #     imageA = Image.open(pathA).resize((160, 90), Image.LANCZOS)
-        #     imageB = Image.open(pathB).resize((160, 90), Image.LANCZOS)
-        #     photoA = ImageTk.PhotoImage(imageA)
-        #     photoB = ImageTk.PhotoImage(imageB)
-
-        #     self.image_labels_pair[i][0].configure(image=photoA)
-        #     self.image_labels_pair[i][1].configure(image=photoB)
-        #     self.image_labels_pair[i][0].image = photoA
-        #     self.image_labels_pair[i][1].image = photoB
-        #     self.image_labels_pair[i][0].bind("<Button-1>", lambda e, path=pathA: self.on_image_click(path))  # chua hieu
-        #     self.image_labels_pair[i][1].bind("<Button-1>", lambda e, path=pathB: self.on_image_click(path))  # chua hieu
-        # # while (len(self.image_labels) < len(image_paths)):
-
         for i in range(len(results)):
 
             pathA = results[i][1]['filepathA']
@@ -264,13 +285,13 @@ class ImageApp:
             labelA.configure(image=photoA)
             labelA.image = photoA
             labelA.grid(row=i, column=0)
-            labelA.bind("<Button-1>", lambda e, path=pathA: self.on_image_click(path))   # chua hieu
+            labelA.bind("<Button-1>", lambda e, path=pathA: self.on_image_click(path, "a"))   # chua hieu
 
             labelB = tk.Label(self.image_display_c_frame, image=photoB)
             labelB.configure(image=photoB)
             labelB.image = photoB
             labelB.grid(row=i, column=1)
-            labelB.bind("<Button-1>", lambda e, path=pathB: self.on_image_click(path))   # chua hieu
+            labelB.bind("<Button-1>", lambda e, path=pathB: self.on_image_click(path, "b"))   # chua hieu
 
             self.image_labels_pair.append([labelA, labelB])
             print("Number of pairs:", len(self.image_labels_pair))
@@ -308,7 +329,7 @@ class ImageApp:
             curVideo, curFrame = seq.video, seq.frameid
             images_paths.append(seq.filepath)
 
-        self.update_image_display(images_paths, panel)
+        self.update_image_display_from_path(images_paths, panel)
         image_display_frame.update()
         image_display_canvas.configure(scrollregion=image_display_canvas.bbox('all'))
 
@@ -318,7 +339,7 @@ class ImageApp:
             self.view_b = view
 
 
-    def update_image_display(self, image_paths, panel):
+    def update_image_display_from_path(self, image_paths, panel):
 
         image_labels = None
         image_display_frame = None
@@ -330,15 +351,9 @@ class ImageApp:
             self.image_labels_b = []
             image_labels = self.image_labels_b
             image_display_frame = self.image_display_b_frame
-
-        # for i, path in enumerate(image_labels):
-        #     image = Image.open(image_paths[i])
-        #     image = image.resize((160, 90), Image.LANCZOS)
-        #     photo = ImageTk.PhotoImage(image)
-        #     image_labels[i].configure(image=photo)
-        #     image_labels[i].image = photo
-        #     self.image_labels[i].bind("<Button-1>", lambda e, path=image_paths[i]: self.on_image_click(path))
-        # # while (len(self.image_labels) < len(image_paths)):
+        
+        else:
+            return None
 
         for i in range(len(image_paths)):
             path = image_paths[i]
@@ -350,130 +365,48 @@ class ImageApp:
             label.configure(image=photo)
             label.image = photo
             label.grid(row=i//2, column=i%2)
-            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path))
+            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path, panel))
             image_labels.append(label)
 
-            
+    def update_image_display_from_ImageTK(self, images, panel):
 
-    # def search(self, textA, textB):
-    #     next_frames_search_count = self.get_slider_value()
-    #     # Add your search logic here
+        image_labels = None
+        image_display_frame = None
+        if panel == 'c':
+            self.image_labels_c = []
+            image_labels = self.image_labels_c
+            image_display_frame = self.image_display_c_frame
+        elif panel == 'd':
+            self.image_labels_d = []
+            image_labels = self.image_labels_d
+            image_display_frame = self.image_display_d_frame
+        
+        else:
+            return None
 
-    #     view = self.dataset.sort_by_similarity(textA, k=30, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
-
-    #     results = []
-
-    #     images_paths = []
-    #     next_images_paths = []
-
-    #     # if (textB == ""):
-    #     #     for seq in view:
-    #     #         images_paths.append(seq.filepath)
-    #     #         next_images_paths.append(cur_next_images_paths)
-    #     # else:
-    #     for seqA in view:
-    #         curVideo, curFrame = seqA.video, seqA.frameid
-    #         # print(curVideo, curFrame, seqA.similarity)
-
-    #         nextFrames = []
-    #         for i in range(next_frames_search_count):
-    #             nextFrame = (int)(curFrame) + i
-    #             nextFrame = (str)(nextFrame)
-    #             while (len(nextFrame) < 4):
-    #                 nextFrame = '0' + nextFrame
-    #             nextFrames.append(nextFrame)
-
-            
-    #         viewB = self.dataset.match(F("video").is_in((curVideo))).match(F("frameid").is_in((nextFrames)))
-    #         print(len(viewB))
-    #         if textB != "":
-    #             viewB2 = viewB.sort_by_similarity(textB, k = 15, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
-
-    #         cur_next_images_paths = []
-    #         for seqB in viewB:
-    #             cur_next_images_paths.append(seqB.filepath)
-
-    #         if textB != "":
-    #             for seqB in viewB2:
-    #                 print(curVideo, curFrame, seqA.similarity)
-    #                 print(seqB.video, seqB.frameid, seqB.similarity)
-
-    #                 score = (float)(seqA.similarity) + (float)(seqB.similarity)
-    #                 heapq.heappush(results, (score, {
-    #                     'filepath': seqA.filepath,
-    #                     'video': curVideo,
-    #                     'frame': curFrame,
-    #                     'next_frames': cur_next_images_paths
-    #                 }))
-    #                 print(" ----- ")
-    #             print(" **** ")
-
-    #     # for x in results:
-    #     #     print(x)
+        for i in range(len(images)):
+            # image = images[i]
+            # image = image.resize((160, 90), Image.LANCZOS)
+            # photo = ImageTk.PhotoImage(image)
+            photo = images[i]
+            label = tk.Label(image_display_frame, image=photo)
+            label.configure(image=photo)
+            label.image = photo
+            label.grid(row=i//2, column=i%2)
+            # label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path))
+            image_labels.append(label)
 
 
-    #     for priority, item in results:
-    #         images_paths.append(item['filepath'])
-    #         # next_images_paths.append(item['nextFilepath'])
-    #         next_images_paths.append(item['next_frames'])
+    def on_image_click(self, image_path, panel = ""):
+        print(f"Image clicked: {image_path}, panel: {panel}")
+        global selected_1_img
+        global selected_2_img
 
-    #     self.update_image_display(images_paths, next_images_paths)
-    #     self.image_display_frame.update()
-    #     self.image_display_canvas.configure(scrollregion=self.image_display_canvas.bbox('all'))
-
-
-    def on_image_click(self, image_path):
-        print(f"Image clicked: {image_path}")
+        if panel == "a":
+            selected_1_img = image_path
+        elif panel == "b":
+            selected_2_img = image_path
         self.image_path_label.config(text = image_path)
-
-        # for i, path in enumerate(self.timeline_labels):
-        #     if (i >= len(next_images_paths)):
-        #         break
-        #     image = Image.open(next_images_paths[i])
-        #     image = image.resize((160, 90), Image.LANCZOS)
-        #     photo = ImageTk.PhotoImage(image)
-        #     self.timeline_labels[i].configure(image=photo)
-        #     self.timeline_labels[i].image = photo
-        #     # label.bind("<Button-1>", lambda e, path=image_paths[i], next_image_path=next_images_paths[i]: self.on_image_click(path, next_image_path))
-        # # while (len(self.image_labels) < len(image_paths)):
-
-        # for i in range(len(self.timeline_labels), len(next_images_paths)):
-        #     path = next_images_paths[i]
-        #     print(path)
-        #     image = Image.open(path)
-        #     image = image.resize((160, 90), Image.LANCZOS)
-        #     photo = ImageTk.PhotoImage(image)
-        #     label = tk.Label(self.timeline_frame, image=photo)
-
-        #     # label.bind("<Button-1>", lambda e, path=path, next_image_path=next_images_paths[i]: self.on_image_click(path, next_image_path))
-        #     label.configure(image=photo)
-        #     label.image = photo
-        #     label.grid(row=i//2, column=i%2)
-        #     self.image_labels.append(label)
-
-    # def update_image_display(self, image_paths, next_images_paths):
-
-    #     for i, pathe in enumerate(self.image_labels):
-    #         image = Image.open(image_paths[i])
-    #         image = image.resize((160, 90), Image.LANCZOS)
-    #         photo = ImageTk.PhotoImage(image)
-    #         self.image_labels[i].configure(image=photo)
-    #         self.image_labels[i].image = photo
-    #         self.image_labels[i].bind("<Button-1>", lambda e, path=image_paths[i], next_image_path=next_images_paths[i]: self.on_image_click(path, next_image_path))
-    #     # while (len(self.image_labels) < len(image_paths)):
-
-    #     for i in range(len(self.image_labels), len(image_paths)):
-    #         path = image_paths[i]
-    #         print(path)
-    #         image = Image.open(path)
-    #         image = image.resize((160, 90), Image.LANCZOS)
-    #         photo = ImageTk.PhotoImage(image)
-    #         label = tk.Label(self.image_display_frame, image=photo)
-    #         label.configure(image=photo)
-    #         label.image = photo
-    #         label.grid(row=i//2, column=i%2)
-    #         label.bind("<Button-1>", lambda e, path=path, next_image_path=next_images_paths[i]: self.on_image_click(path, next_image_path))
-    #         self.image_labels.append(label)
 
     def display_image(self):
         image_path = self.current_image_paths[self.current_image_index]
@@ -498,6 +431,9 @@ if __name__ == "__main__":
     # dataset = fo.Dataset.from_images_dir('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes', name=None, tags=None, recursive=True)
     dataset = fo.load_dataset('aic2023-L01-L20')
 
+    # for sample in dataset:
+    #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
+    #     sample.save()
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
     #     sample.save()
