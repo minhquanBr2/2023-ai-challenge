@@ -301,7 +301,7 @@ class ImageApp:
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
-        view = self.dataset.sort_by_similarity(text, k=30, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+        view = self.dataset.sort_by_similarity(text, k=100, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
         images_paths = []
 
         for seq in view:
@@ -496,64 +496,64 @@ if __name__ == "__main__":
 
     # set up data
     # dataset = fo.Dataset.from_images_dir('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes', name=None, tags=None, recursive=True)
-    dataset = fo.load_dataset('aic2023-kf-1')
+    dataset = fo.load_dataset('aic2023-L01-L20')
 
-    for sample in dataset:
-        _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
-        sample.save()
+    # for sample in dataset:
+    #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
+    #     sample.save()
 
-    all_keyframe = glob('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes\\*\\*.jpg')
-    video_keyframe_dict = {}
-    all_video = glob('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes\\*')
-    all_video = [v.rsplit('\\', 1)[-1] for v in all_video]
-    print(all_video)
+    # all_keyframe = glob('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes\\*\\*.jpg')
+    # video_keyframe_dict = {}
+    # all_video = glob('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes\\*')
+    # all_video = [v.rsplit('\\', 1)[-1] for v in all_video]
+    # print(all_video)
 
-    for kf in all_keyframe:
-        _, vid, kf = kf[:-4].rsplit('\\',2)
-        if vid not in video_keyframe_dict.keys():
-            video_keyframe_dict[vid] = [kf]
-        else:
-            video_keyframe_dict[vid].append(kf)
+    # for kf in all_keyframe:
+    #     _, vid, kf = kf[:-4].rsplit('\\',2)
+    #     if vid not in video_keyframe_dict.keys():
+    #         video_keyframe_dict[vid] = [kf]
+    #     else:
+    #         video_keyframe_dict[vid].append(kf)
 
-    for k,v in video_keyframe_dict.items():
-        video_keyframe_dict[k] = sorted(v)
+    # for k,v in video_keyframe_dict.items():
+    #     video_keyframe_dict[k] = sorted(v)
 
-    embedding_dict = {}
-    for v in all_video:
-        clip_path = f'D:\\CS\\2023 HCM AI CHALLENGE\\clip-features-vit-b32\\{v}.npy'
-        a = np.load(clip_path)
-        embedding_dict[v] = {}
-        for i,k in enumerate(video_keyframe_dict[v]):
-            embedding_dict[v][k] = a[i]
-            # print(i, k, a[i])
+    # embedding_dict = {}
+    # for v in all_video:
+    #     clip_path = f'D:\\CS\\2023 HCM AI CHALLENGE\\clip-features-vit-b32\\{v}.npy'
+    #     a = np.load(clip_path)
+    #     embedding_dict[v] = {}
+    #     for i,k in enumerate(video_keyframe_dict[v]):
+    #         embedding_dict[v][k] = a[i]
+    #         # print(i, k, a[i])
 
-    clip_embeddings = []
-    for sample in dataset:
-        clip_embedding = embedding_dict[sample['video']][sample['frameid']]
-        clip_embeddings.append(clip_embedding)
+    # clip_embeddings = []
+    # for sample in dataset:
+    #     clip_embedding = embedding_dict[sample['video']][sample['frameid']]
+    #     clip_embeddings.append(clip_embedding)
 
-    # fob.compute_similarity(
-    #     dataset,
-    #     model="clip-vit-base32-torch",      # store model's name for future use
-    #     embeddings=clip_embeddings,          # precomputed image embeddings
-    #     brain_key="img_sim_32_qdrant",
+    # # fob.compute_similarity(
+    # #     dataset,
+    # #     model="clip-vit-base32-torch",      # store model's name for future use
+    # #     embeddings=clip_embeddings,          # precomputed image embeddings
+    # #     brain_key="img_sim_32_qdrant",
+    # # )
+
+
+    # fob.similarity.Similarity.delete_run(dataset, "img_sim_32_qdrant")
+    # # if fob.similarity.Similarity.has_cached_run_results(dataset, "img_sim_32_qdrant"):
+    # #     fob.similarity.Similarity.delete_run(dataset, "img_sim_32_qdrant")
+
+    # qdrant_index = fob.compute_similarity(
+    #     dataset, 
+    #     model = "clip-vit-base32-torch",     
+    #     embeddings=clip_embeddings,          # precomputed image embeddings  
+    #     brain_key = "img_sim_32_qdrant", 
+    #     backend="qdrant",
+    #     metric="cosine",
+    #     collection_name = "aic2023-L01-L20"
     # )
-
-
-    fob.similarity.Similarity.delete_run(dataset, "img_sim_32_qdrant")
-    # if fob.similarity.Similarity.has_cached_run_results(dataset, "img_sim_32_qdrant"):
-    #     fob.similarity.Similarity.delete_run(dataset, "img_sim_32_qdrant")
-
-    qdrant_index = fob.compute_similarity(
-        dataset, 
-        model = "clip-vit-base32-torch",     
-        embeddings=clip_embeddings,          # precomputed image embeddings  
-        brain_key = "img_sim_32_qdrant", 
-        backend="qdrant",
-        metric="cosine",
-        collection_name = "aic2023-kf-1-clip"
-    )
-    dataset.save()
+    # dataset.save()
 
     root = tk.Tk()
     app = ImageApp(root, dataset)
