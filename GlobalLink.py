@@ -1,4 +1,4 @@
-VideosFolder = "E:\\AIChallenge\\video"
-CsvFolder = "E:\\AIChallenge\\map-keyframes"
-KeyframeFolder = 'E:\\AIChallenge\\Keyframes'
-ResultsCSV = 'D:\\University\\Contest\\AIChallenge\\2023-ai-challenge\\res\\'
+VideosFolder = 'E:\\2023 HCM AI CHALLENGE\\video'
+CsvFolder = 'E:\\2023 HCM AI CHALLENGE\\map-keyframes'
+KeyframeFolder = 'E:\\2023 HCM AI CHALLENGE\\Keyframes'
+ResultsCSV = 'D:\\VSCode\\2023-ai-challenge\\result\\'
