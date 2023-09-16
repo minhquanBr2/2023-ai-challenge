@@ -5,13 +5,14 @@ import os
 import subprocess
 import numpy as np
 import io
+from GlobalLink import VideosFolder
 
 def extract_frames(video_name,
                     frame_idx, 
                     num_frames_before = 0, 
                     num_frames_after = 0, 
                     frame_stride=1,  
-                    videos_folder = "E:\\2023 HCM AI CHALLENGE\\video"):
+                    videos_folder = VideosFolder):
     # # Tạo đường dẫn đến thư mục chứa video tương ứng
     # video_folder = os.path.join(videos_folder, 'Videos_' + video_name.split('_')[0], 'video')
 

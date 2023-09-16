@@ -14,6 +14,7 @@ import os
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames
+from GlobalLink import KeyframeFolder
 
 # to do
 # image_folder = 
@@ -428,8 +429,9 @@ if __name__ == "__main__":
     
 
     # set up data
-    # dataset = fo.Dataset.from_images_dir('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes', name=None, tags=None, recursive=True)
-    dataset = fo.load_dataset('aic2023-L01-L20')
+    # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-full", tags=None, recursive=True)
+    # dataset.persistent = True
+    dataset = fo.load_dataset('aic2023-full')
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
@@ -438,9 +440,9 @@ if __name__ == "__main__":
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
     #     sample.save()
 
-    # all_keyframe = glob('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes\\*\\*.jpg')
+    # all_keyframe = glob(KeyframeFolder + '\\*\\*.jpg')
     # video_keyframe_dict = {}
-    # all_video = glob('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes\\*')
+    # all_video = glob(KeyframeFolder + '\\*')
     # all_video = [v.rsplit('\\', 1)[-1] for v in all_video]
     # print(all_video)
 
@@ -456,7 +458,7 @@ if __name__ == "__main__":
 
     # embedding_dict = {}
     # for v in all_video:
-    #     clip_path = f'D:\\CS\\2023 HCM AI CHALLENGE\\clip-features-vit-b32\\{v}.npy'
+    #     clip_path = f'E:\\AIChallenge\\clip-features-vit-b32\\{v}.npy'
     #     a = np.load(clip_path)
     #     embedding_dict[v] = {}
     #     for i,k in enumerate(video_keyframe_dict[v]):
@@ -487,7 +489,7 @@ if __name__ == "__main__":
     #     brain_key = "img_sim_32_qdrant", 
     #     backend="qdrant",
     #     metric="cosine",
-    #     collection_name = "aic2023-L01-L20"
+    #     collection_name = "aic2023-full"
     # )
     # dataset.save()
 
