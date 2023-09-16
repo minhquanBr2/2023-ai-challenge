@@ -60,7 +60,7 @@ def extract_frames(video_name,
     # Giải phóng tài nguyên video
     cap.release()
 
-    return photo_images
+    return video_name, frame_indices, photo_images
 
     # # Open the video file
     # cap = cv2.VideoCapture(video_path)

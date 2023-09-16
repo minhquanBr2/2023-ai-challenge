@@ -10,6 +10,7 @@ import numpy as np
 from glob import glob
 import json
 import os
+import csv
 
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
@@ -20,6 +21,7 @@ from extract_frame import extract_frames
 
 selected_1_img = ""
 selected_2_img = ""
+
 
 class ImageApp:
 
@@ -40,7 +42,7 @@ class ImageApp:
         
         self.screenwidth = self.root.winfo_screenwidth()
         self.screenheight = self.root.winfo_screenheight()
-        self.framewidth_unit = int(self.screenwidth / 9 * 0.95)
+        self.framewidth_unit = int(self.screenwidth / 9 * 0.9)
 
         # FOR INPUT
         # ở đây ta có 2 frame ở vị trí top, mỗi frame ứng với 1 dòng label + 1 ô nhập text + 1 nút search
@@ -56,16 +58,16 @@ class ImageApp:
         self.image_display = tk.Frame(self.root)
         self.image_display.pack(side="left", padx=10)
 
-        self.image_display_a = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500, background="red")
+        self.image_display_a = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500)
         self.image_display_a.grid(row=0, column=0)
 
-        self.image_display_b = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500, background="green")
+        self.image_display_b = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500)
         self.image_display_b.grid(row=0, column=1)
         
-        self.image_display_c = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500, background="red")
+        self.image_display_c = tk.Frame(self.image_display, width=2*self.framewidth_unit, height=500)
         self.image_display_c.grid(row=0, column=2)
 
-        self.image_display_d = tk.Frame(self.image_display, width=3*self.framewidth_unit, height=500, background="green")
+        self.image_display_d = tk.Frame(self.image_display, width=3*self.framewidth_unit, height=500)
         self.image_display_d.grid(row=0, column=3)
 
 
@@ -83,16 +85,16 @@ class ImageApp:
 
 
         # FOR IMAGE DISPLAYING
-        self.image_display_a_canvas = tk.Canvas(self.image_display_a, width=2*self.framewidth_unit, height=500, background="blue")
+        self.image_display_a_canvas = tk.Canvas(self.image_display_a, width=2*self.framewidth_unit, height=500)
         self.image_display_a_canvas.pack(side="left", fill="both", expand=True)
 
-        self.image_display_b_canvas = tk.Canvas(self.image_display_b, width=2*self.framewidth_unit, height=500, background="cyan")
+        self.image_display_b_canvas = tk.Canvas(self.image_display_b, width=2*self.framewidth_unit, height=500)
         self.image_display_b_canvas.pack(side="left", fill="both", expand=True)
 
-        self.image_display_c_canvas = tk.Canvas(self.image_display_c, width=2*self.framewidth_unit, height=500, background="magenta")
+        self.image_display_c_canvas = tk.Canvas(self.image_display_c, width=2*self.framewidth_unit, height=500)
         self.image_display_c_canvas.pack(side="left", fill="both", expand=True)
 
-        self.image_display_d_canvas = tk.Canvas(self.image_display_d, width=3*self.framewidth_unit, height=500, background="blue")
+        self.image_display_d_canvas = tk.Canvas(self.image_display_d, width=3*self.framewidth_unit, height=500)
         self.image_display_d_canvas.pack(side="left", fill="both", expand=True)
 
         # Create a Scrollbar for the Canvas
@@ -115,13 +117,13 @@ class ImageApp:
         self.image_display_d_canvas.configure(yscrollcommand=self.scrollbar_d.set)
 
         # Create a Frame inside the Canvas to hold the Label
-        self.image_display_a_frame = tk.Frame(self.image_display_a_canvas, background='green')
+        self.image_display_a_frame = tk.Frame(self.image_display_a_canvas)
         self.image_display_a_canvas.create_window((0, 0), window=self.image_display_a_frame, anchor="nw")
-        self.image_display_b_frame = tk.Frame(self.image_display_b_canvas, background='green')
+        self.image_display_b_frame = tk.Frame(self.image_display_b_canvas)
         self.image_display_b_canvas.create_window((0, 0), window=self.image_display_b_frame, anchor="nw")
-        self.image_display_c_frame = tk.Frame(self.image_display_c_canvas, background='yellow')
+        self.image_display_c_frame = tk.Frame(self.image_display_c_canvas)
         self.image_display_c_canvas.create_window((0, 0), window=self.image_display_c_frame, anchor="nw")
-        self.image_display_d_frame = tk.Frame(self.image_display_d_canvas, background='red')
+        self.image_display_d_frame = tk.Frame(self.image_display_d_canvas)
         self.image_display_d_canvas.create_window((0, 0), window=self.image_display_d_frame, anchor="nw")
 
         # Bind the canvas to a function that updates scroll region
@@ -153,7 +155,7 @@ class ImageApp:
         self.sequence_a_label = tk.Label(self.sequence_a_frame, text="Sequence A")
         self.sequence_a_label.grid(row=0, column=0, padx=10, pady=10)
 
-        self.sequence_a_entry = tk.Entry(self.sequence_a_frame, textvariable=self.text_a)
+        self.sequence_a_entry = tk.Entry(self.sequence_a_frame, textvariable=self.text_a, width=60)
         self.sequence_a_entry.grid(row=0, column=1, padx=10, pady=10)
 
         self.sequence_a_button = tk.Button(self.sequence_a_frame, text="Search", command=self.search_sequence_a)
@@ -162,7 +164,7 @@ class ImageApp:
         self.sequence_b_label = tk.Label(self.sequence_b_frame, text="Sequence B")
         self.sequence_b_label.grid(row=0, column=0, padx=10, pady=10)
 
-        self.sequence_b_entry = tk.Entry(self.sequence_b_frame, textvariable=self.text_b)
+        self.sequence_b_entry = tk.Entry(self.sequence_b_frame, textvariable=self.text_b, width=60)
         self.sequence_b_entry.grid(row=0, column=1, padx=10, pady=10)
 
         self.sequence_b_button = tk.Button(self.sequence_b_frame, text="Search", command=self.search_sequence_b)
@@ -210,11 +212,11 @@ class ImageApp:
         print("Frame index: ", frame_idx)
 
         #Lấy các frameidx từ video ra
-        images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_after= 30, frame_stride=15)
+        video_name, frame_indices, images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_after= 30, frame_stride=15)
         #Hiển thị lên panel
-        self.update_image_display_from_ImageTK(images, panel="c")
-        self.image_display_c_frame.update()
-        self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
+        self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
+        self.image_display_d_frame.update()
+        self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
 
 
     def search_b_prev(self):
@@ -232,12 +234,12 @@ class ImageApp:
         images = []
         print("Frame index: ", frame_idx)
        
-        images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_before= 30, frame_stride=15)
+        video_name, frame_indices, images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_before= 30, frame_stride=15)
 
         #Hiển thị lên panel
-        self.update_image_display_from_ImageTK(images, panel="c")
-        self.image_display_c_frame.update()
-        self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
+        self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
+        self.image_display_d_frame.update()
+        self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
         
     def search_pair(self, frame_epsilon=10):
         
@@ -285,13 +287,13 @@ class ImageApp:
             labelA.configure(image=photoA)
             labelA.image = photoA
             labelA.grid(row=i, column=0)
-            labelA.bind("<Button-1>", lambda e, path=pathA: self.on_image_click(path, "a"))   # chua hieu
+            labelA.bind("<Button-1>", lambda e, path=pathA: self.on_image_click(panel="a", image_path=pathA))   # chua hieu
 
             labelB = tk.Label(self.image_display_c_frame, image=photoB)
             labelB.configure(image=photoB)
             labelB.image = photoB
             labelB.grid(row=i, column=1)
-            labelB.bind("<Button-1>", lambda e, path=pathB: self.on_image_click(path, "b"))   # chua hieu
+            labelB.bind("<Button-1>", lambda e, path=pathB: self.on_image_click(panel="b", image_path=pathB))   # chua hieu
 
             self.image_labels_pair.append([labelA, labelB])
             print("Number of pairs:", len(self.image_labels_pair))
@@ -350,8 +352,7 @@ class ImageApp:
         elif panel == 'b':
             self.image_labels_b = []
             image_labels = self.image_labels_b
-            image_display_frame = self.image_display_b_frame
-        
+            image_display_frame = self.image_display_b_frame        
         else:
             return None
 
@@ -365,10 +366,10 @@ class ImageApp:
             label.configure(image=photo)
             label.image = photo
             label.grid(row=i//2, column=i%2)
-            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path, panel))
+            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path))
             image_labels.append(label)
 
-    def update_image_display_from_ImageTK(self, images, panel):
+    def update_image_display_from_ImageTK(self, images, panel, video_name, frame_indices):
 
         image_labels = None
         image_display_frame = None
@@ -379,25 +380,31 @@ class ImageApp:
         elif panel == 'd':
             self.image_labels_d = []
             image_labels = self.image_labels_d
-            image_display_frame = self.image_display_d_frame
-        
+            image_display_frame = self.image_display_d_frame        
         else:
             return None
+        
+        print(frame_indices)
 
         for i in range(len(images)):
             # image = images[i]
             # image = image.resize((160, 90), Image.LANCZOS)
             # photo = ImageTk.PhotoImage(image)
             photo = images[i]
+            frame_index = frame_indices[i]
+            print(frame_index)
             label = tk.Label(image_display_frame, image=photo)
             label.configure(image=photo)
             label.image = photo
-            label.grid(row=i//2, column=i%2)
-            # label.bind("<Button-1>", lambda e, path=path: self.on_image_click(path))
+            label.grid(row=i//3, column=i%3)
+            label.bind("<Button-1>", lambda e, photo=photo, frame_index=frame_index: self.on_image_click(panel='d', video_name=video_name, frame_index=frame_index))
             image_labels.append(label)
+            
+        self.image_display_d_frame.update()
+        self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
 
 
-    def on_image_click(self, image_path, panel = ""):
+    def on_image_click(self, panel = "", image_path=None, video_name=None, frame_index=None):
         print(f"Image clicked: {image_path}, panel: {panel}")
         global selected_1_img
         global selected_2_img
@@ -406,6 +413,17 @@ class ImageApp:
             selected_1_img = image_path
         elif panel == "b":
             selected_2_img = image_path
+        else:
+            print(video_name, frame_index)
+            submission_filepath = 'D:\\VSCode\\2023-ai-challenge\\' + str(self.text_a.get()) + '.csv'
+            if os.path.exists(submission_filepath):
+                with open(submission_filepath, mode='a', newline='') as file:
+                    writer = csv.writer(file, delimiter=',')
+                    writer.writerow([video_name, frame_index])  
+            else:
+                with open(submission_filepath, mode='w', newline='') as file:
+                    writer = csv.writer(file, delimiter=',')
+                    writer.writerow([video_name, frame_index])              
         self.image_path_label.config(text = image_path)
 
     def display_image(self):
@@ -429,6 +447,7 @@ if __name__ == "__main__":
 
     # set up data
     # dataset = fo.Dataset.from_images_dir('D:\\CS\\2023 HCM AI CHALLENGE\\keyframes', name=None, tags=None, recursive=True)
+    print(fo.list_datasets())
     dataset = fo.load_dataset('aic2023-L01-L20')
 
     # for sample in dataset:
