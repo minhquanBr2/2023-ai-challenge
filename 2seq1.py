@@ -323,7 +323,7 @@ class ImageApp:
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
-        view = self.dataset.sort_by_similarity(text, k=100, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+        view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
         images_paths = []
 
         for seq in view:
