@@ -245,7 +245,8 @@ class ImageApp:
     def search_pair(self):
         
         # Lấy giá trị frame_epsilon
-        frame_epsilon = self.get_slider_value()
+        # frame_epsilon = self.get_slider_value()
+        frame_epsilon = 10
         
         # Xóa các ảnh của query trước đó
         for label in self.image_display_c_frame.winfo_children():
