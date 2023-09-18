@@ -486,14 +486,12 @@ class ImageApp:
             label.grid(row=i//2, column=i%2)
 
             # Create a label for the video name and frame index
-            filename_label = tk.Label(image_display_frame, text=f"{video_name}, {keyframe_index}", anchor='sw', bg='white')
+            filename_label = tk.Label(image_display_frame, text=f"{video_name}, {keyframe_index}, {get_frame_info(video_name, keyframe_index)}", anchor='sw', bg='white')
             filename_label.grid(row=i // 2, column=i % 2, sticky='sw')
 
             # Bind a click event to the image label
-            result = extract_video_frame_info(path)
-            video = result['video']
-            frame = result['frame']
-            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path, video_name=video, frame_index=frame))
+
+            label.bind("<Button-1>", lambda e, path=path, video_name=video_name, frame_index=keyframe_index: self.on_image_click(panel=panel, image_path=path, video_name=video_name, frame_index=frame_index))
 
             # Add label to list
             image_labels.append(label)
@@ -609,8 +607,8 @@ if __name__ == "__main__":
     # dataset.persistent = True
 
     # Hoang's line. please dont delete
-    # dataset = fo.load_dataset('aic2023-kf-1-full')
-    dataset = fo.load_dataset('aic2023-L01-L20')
+    dataset = fo.load_dataset('aic2023-kf-1-full')
+    # dataset = fo.load_dataset('aic2023-L01-L20')
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
