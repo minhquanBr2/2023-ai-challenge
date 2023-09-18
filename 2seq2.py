@@ -15,10 +15,28 @@ import csv
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames, extract_frames_between
-from GlobalLink import KeyframeFolder, ResultsCSV
+from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder
+
+import subprocess
 
 # to do
 # image_folder = 
+
+def extract_video_frame_info(file_path):
+    # Split the file path using backslashes as the delimiter
+    parts = file_path.split('\\')
+    
+    # Check if the path contains at least 5 parts
+    if len(parts) >= 5:
+        video_name = parts[-2]  # The video name is the third-to-last part
+        frame_number = parts[-1].split('.')[0]  # Remove the file extension
+        
+        return {
+            'video': video_name,
+            'frame': frame_number
+        }
+    else:
+        return None
 
 
 class ImageApp:
@@ -49,6 +67,10 @@ class ImageApp:
 
         self.sequence_b_frame = tk.Frame(self.root)
         self.sequence_b_frame.pack(side="top")
+
+        # info_display: frame dùng để hiển thị thông tin của frame đã chọn
+        self.info_display = tk.Frame(self.root)
+        self.info_display.pack(side = "top")
 
         # SELECTED IMAGE: các biến lưu các ảnh được chọn
         self.selected_img_a = ""
@@ -204,6 +226,10 @@ class ImageApp:
         # self.open_image_button = tk.Button(self.image_info_frame, text="Open Image", command=self.open_image)
         # self.open_image_button.pack(side="left")
 
+        # info frame buttons
+        open_button = tk.Button(self.info_display, text="Open Video", command=self.on_open_video_click)
+        open_button.pack()
+
 
     def search_next(self, selected_img):
         print('next')
@@ -351,6 +377,8 @@ class ImageApp:
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
+        # Hoang's line. please dont delete
+        # view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_qdrant", dist_field = "similarity")
         view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
         images_paths = []
 
@@ -403,7 +431,10 @@ class ImageApp:
             filename_label.grid(row=i // 2, column=i % 2, sticky='sw')
 
             # Bind a click event to the image label
-            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path))
+            result = extract_video_frame_info(path)
+            video = result['video']
+            frame = result['frame']
+            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path, video_name=video, frame_index=frame))
 
             # Add label to list
             image_labels.append(label)
@@ -466,6 +497,7 @@ class ImageApp:
 
     def on_image_click(self, panel = "", image_path=None, video_name=None, frame_index=None):
         print(f"Image clicked: {image_path}, {video_name}, {frame_index}, panel: {panel}")
+        self.selected_video_path = VideosFolder + '\\' + video_name + '.mp4'
 
         if panel == "a":
             self.selected_img_a = image_path
@@ -486,6 +518,13 @@ class ImageApp:
                     writer.writerow([video_name, frame_index]) 
                     file.close()             
         self.image_path_label.config(text = image_path)
+
+    def on_open_video_click(self):
+
+        file_path = self.selected_video_path
+
+        # Use the "start" command on Windows to open the file with the default associated program.
+        subprocess.Popen(['start', '', file_path], shell=True)
 
     def display_image(self):
         image_path = self.current_image_paths[self.current_image_index]
@@ -509,6 +548,9 @@ if __name__ == "__main__":
     # set up data
     # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-L01-L20", tags=None, recursive=True)
     # dataset.persistent = True
+
+    # Hoang's line. please dont delete
+    # dataset = fo.load_dataset('aic2023-kf-1-full')
     dataset = fo.load_dataset('aic2023-L01-L20')
 
     # for sample in dataset:
