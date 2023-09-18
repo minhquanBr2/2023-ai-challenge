@@ -15,11 +15,34 @@ import csv
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames, extract_frames_between
-from GlobalLink import KeyframeFolder, ResultsCSV
+from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder
+
+import subprocess
 
 # to do
 # image_folder = 
 
+def extract_video_frame_info(file_path):
+    # Split the file path using backslashes as the delimiter
+    parts = file_path.split('\\')
+    
+    # Check if the path contains at least 5 parts
+    if len(parts) >= 5:
+        video_name = parts[-2]  # The video name is the third-to-last part
+        frame_number = parts[-1].split('.')[0]  # Remove the file extension
+        
+        return {
+            'video': video_name,
+            'frame': frame_number
+        }
+    else:
+        return None
+
+
+def text_to_list(text):
+    list = text.split(',')
+    cleaned_list = [chunk.strip() for chunk in list]
+    return cleaned_list
 
 def text_to_list(text):
     list = text.split(',')
@@ -54,6 +77,10 @@ class ImageApp:
 
         self.sequence_b_frame = tk.Frame(self.root)
         self.sequence_b_frame.pack(side="top")
+
+        # info_display: frame dùng để hiển thị thông tin của frame đã chọn
+        self.info_display = tk.Frame(self.root)
+        self.info_display.pack(side = "top")
 
         # SELECTED IMAGE: các biến lưu các ảnh được chọn
         self.selected_img_a = ""
@@ -463,7 +490,10 @@ class ImageApp:
             filename_label.grid(row=i // 2, column=i % 2, sticky='sw')
 
             # Bind a click event to the image label
-            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path))
+            result = extract_video_frame_info(path)
+            video = result['video']
+            frame = result['frame']
+            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path, video_name=video, frame_index=frame))
 
             # Add label to list
             image_labels.append(label)
@@ -526,6 +556,7 @@ class ImageApp:
 
     def on_image_click(self, panel = "", image_path=None, video_name=None, frame_index=None):
         print(f"Image clicked: {image_path}, {video_name}, {frame_index}, panel: {panel}")
+        self.selected_video_path = VideosFolder + '\\' + video_name + '.mp4'
 
         if panel == "a":
             self.selected_img_a = image_path
@@ -546,6 +577,13 @@ class ImageApp:
                     writer.writerow([video_name, frame_index]) 
                     file.close()             
         self.image_path_label.config(text = image_path)
+
+    def on_open_video_click(self):
+
+        file_path = self.selected_video_path
+
+        # Use the "start" command on Windows to open the file with the default associated program.
+        subprocess.Popen(['start', '', file_path], shell=True)
 
     def display_image(self):
         image_path = self.current_image_paths[self.current_image_index]
@@ -569,6 +607,9 @@ if __name__ == "__main__":
     # set up data
     # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-L01-L20", tags=None, recursive=True)
     # dataset.persistent = True
+
+    # Hoang's line. please dont delete
+    # dataset = fo.load_dataset('aic2023-kf-1-full')
     dataset = fo.load_dataset('aic2023-L01-L20')
 
     # for sample in dataset:
