@@ -242,7 +242,11 @@ class ImageApp:
         self.image_display_d_frame.update()
         self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
         
-    def search_pair(self, frame_epsilon=10):
+    def search_pair(self):
+        
+        # Lấy giá trị frame_epsilon
+        # frame_epsilon = self.get_slider_value()
+        frame_epsilon = 10
         
         # Xóa các ảnh của query trước đó
         for label in self.image_display_c_frame.winfo_children():
@@ -252,8 +256,6 @@ class ImageApp:
         # Khởi tạo danh sách kết quả
         self.image_labels_pair = []
         results = []
-        print(len(self.view_a))
-        print(len(self.view_b))
 
         # Make pairs
         for seqA in self.view_a:
@@ -261,8 +263,8 @@ class ImageApp:
                 if (seqA.video == seqB.video):
                     frameA = (int)(seqA.frameid)
                     frameB = (int)(seqB.frameid)
-                    print(seqA.video, frameA, frameB)
                     if (frameA < frameB and frameB - frameA < frame_epsilon):
+                        print(seqA.video, frameA, frameB)
                         score = (float)(seqA.similarity) + (float)(seqB.similarity)
                         heapq.heappush(results, (score, {
                             'filepathA': seqA.filepath,
@@ -271,13 +273,12 @@ class ImageApp:
                             'seqA': seqA.frameid,
                             'seqB': seqB.frameid,
                         }))
-                    print(len(results))
+        print('Number of pairs found:', len(results))
 
         for i in range(len(results)):
 
             pathA = results[i][1]['filepathA']
             pathB = results[i][1]['filepathB']
-            print(pathA, pathB)
 
             imageA = Image.open(pathA).resize((160, 90), Image.LANCZOS)
             imageB = Image.open(pathB).resize((160, 90), Image.LANCZOS)
@@ -297,7 +298,6 @@ class ImageApp:
             labelB.bind("<Button-1>", lambda e, _pathA=pathA, _pathB=pathB: self.on_pair_click(panel="c", image_path_A=_pathA, image_path_B=_pathB))
 
             self.image_labels_pair.append([labelA, labelB])
-            print("Number of pairs:", len(self.image_labels_pair))
 
         self.image_display_c_frame.update()
         self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
@@ -313,7 +313,6 @@ class ImageApp:
     def get_slider_value(self):
         value = self.scale.get()
         self.value_label.config(text=f"Slider Value: {value}")
-
         return value
     
     def search(self, text, panel):
@@ -325,7 +324,7 @@ class ImageApp:
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
-        view = self.dataset.sort_by_similarity(text, k=100, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+        view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_qdrant", dist_field = "similarity")
         images_paths = []
 
         for seq in view:
@@ -387,7 +386,7 @@ class ImageApp:
         else:
             return None
         
-        print(frame_indices)
+        print('Frame indices:', frame_indices)
 
         for i in range(len(images)):
             # image = images[i]
@@ -395,7 +394,6 @@ class ImageApp:
             # photo = ImageTk.PhotoImage(image)
             photo = images[i]
             frame_index = frame_indices[i]
-            print(frame_index)
             label = tk.Label(image_display_frame, image=photo)
             label.configure(image=photo)
             label.image = photo
@@ -426,7 +424,7 @@ class ImageApp:
 
 
     def on_image_click(self, panel = "", image_path=None, video_name=None, frame_index=None):
-        print(f"Image clicked: {image_path}, panel: {panel}")
+        print(f"Image clicked: {image_path}, {video_name}, {frame_index}, panel: {panel}")
         global selected_1_img
         global selected_2_img
 
@@ -435,15 +433,15 @@ class ImageApp:
         elif panel == "b":
             selected_2_img = image_path
         elif panel == "d":
-            print(video_name, frame_index)
-            submission_filepath = ResultsCSV + str(self.text_a.get()) + '.csv'
+            if not os.path.exists(ResultsCSV):                
+                os.makedirs(ResultsCSV)
+            submission_filepath = ResultsCSV + str(self.text_a.get()[:20]) + '.csv'
             if os.path.exists(submission_filepath):
                 with open(submission_filepath, mode='a', newline='') as file:
                     writer = csv.writer(file, delimiter=',')
                     writer.writerow([video_name, frame_index])  
                     file.close()
             else:
-                os.makedirs(submission_filepath)
                 with open(submission_filepath, mode='w', newline='') as file:
                     writer = csv.writer(file, delimiter=',')
                     writer.writerow([video_name, frame_index]) 
@@ -470,9 +468,9 @@ if __name__ == "__main__":
     
 
     # set up data
-    # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-full", tags=None, recursive=True)
+    # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-L01-L20", tags=None, recursive=True)
     # dataset.persistent = True
-    dataset = fo.load_dataset('aic2023-full')
+    dataset = fo.load_dataset('aic2023-kf-1-full')
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
@@ -530,7 +528,7 @@ if __name__ == "__main__":
     #     brain_key = "img_sim_32_qdrant", 
     #     backend="qdrant",
     #     metric="cosine",
-    #     collection_name = "aic2023-full"
+    #     collection_name = "aic2023-L01-L20"
     # )
     # dataset.save()
 
