@@ -15,7 +15,9 @@ import csv
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames, extract_frames_between
-from GlobalLink import KeyframeFolder, ResultsCSV
+from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder
+
+import subprocess
 
 # to do
 # image_folder = 
@@ -23,6 +25,21 @@ from GlobalLink import KeyframeFolder, ResultsCSV
 selected_1_img = ""
 selected_2_img = ""
 
+def extract_video_frame_info(file_path):
+    # Split the file path using backslashes as the delimiter
+    parts = file_path.split('\\')
+    
+    # Check if the path contains at least 5 parts
+    if len(parts) >= 5:
+        video_name = parts[-3]  # The video name is the third-to-last part
+        frame_number = parts[-1].split('.')[0]  # Remove the file extension
+        
+        return {
+            'video': video_name,
+            'frame': frame_number
+        }
+    else:
+        return None
 
 class ImageApp:
 
@@ -53,6 +70,11 @@ class ImageApp:
         self.sequence_b_frame = tk.Frame(self.root)
         self.sequence_b_frame.pack(side="top")
 
+        # info_display: frame dùng để hiển thị thông tin của frame đã chọn
+        self.info_display = tk.Frame(self.root)
+        self.info_display.pack(side = "top")
+
+
 
 
         # image_display: là cái frame được dùng như grid để bố trí các thành phần trên cửa sổ
@@ -70,6 +92,8 @@ class ImageApp:
 
         self.image_display_d = tk.Frame(self.image_display, width=3*self.framewidth_unit, height=500)
         self.image_display_d.grid(row=0, column=3)
+
+
 
 
         # 3 search buttons at the bottom
@@ -195,6 +219,10 @@ class ImageApp:
 
         # self.open_image_button = tk.Button(self.image_info_frame, text="Open Image", command=self.open_image)
         # self.open_image_button.pack(side="left")
+
+        # info frame buttons
+        open_button = tk.Button(self.info_display, text="Open Video", command=self.on_open_video_click)
+        open_button.pack()
 
 
     def search_a_next(self):
@@ -343,6 +371,8 @@ class ImageApp:
     # def on_label_click(self, event):
     #     self.config(borderwidth=2, relief="solid", highlightbackground="yellow")
 
+    
+
     def update_image_display_from_path(self, image_paths, panel):
 
         image_labels = None
@@ -368,6 +398,7 @@ class ImageApp:
             label.configure(image=photo)
             label.image = photo
             label.grid(row=i//2, column=i%2)
+            
             label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path))
             image_labels.append(label)
 
@@ -427,6 +458,7 @@ class ImageApp:
         print(f"Image clicked: {image_path}, {video_name}, {frame_index}, panel: {panel}")
         global selected_1_img
         global selected_2_img
+        # self.selected_video_path = VideosFolder + '\\' + video_name
 
         if panel == "a":
             selected_1_img = image_path
@@ -447,6 +479,15 @@ class ImageApp:
                     writer.writerow([video_name, frame_index]) 
                     file.close()             
         self.image_path_label.config(text = image_path)
+
+    def on_open_video_click(self):
+
+        file_path = self.selected_video_path
+
+        # Use the "start" command on Windows to open the file with the default associated program.
+        subprocess.Popen(['start', '', file_path], shell=True)
+
+
 
     def display_image(self):
         image_path = self.current_image_paths[self.current_image_index]
