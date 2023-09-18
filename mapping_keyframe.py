@@ -11,7 +11,6 @@ def parse_direc(path):
     # Extract the video name and frame name
     video_name = parts[-2]
     frame_name_with_extension = parts[-1]
-    print(video_name, frame_name_with_extension)
 
     # Remove the file extension to get the frame name without extension
     frame_name = os.path.splitext(frame_name_with_extension)[0]
