@@ -21,6 +21,11 @@ from GlobalLink import KeyframeFolder, ResultsCSV
 # image_folder = 
 
 
+def text_to_list(text):
+    list = text.split(',')
+    cleaned_list = [chunk.strip() for chunk in list]
+    return cleaned_list
+
 class ImageApp:
 
     def on_canvas_configure(self, event):
@@ -158,26 +163,64 @@ class ImageApp:
         self.image_info_frame = tk.Frame(self.root)
         self.image_info_frame.pack(side="right", padx=10)
 
+
+        # For inputing sequences
         self.text_a = tk.StringVar()
         self.text_b = tk.StringVar()
+        self.object_a = tk.StringVar()
+        self.object_b = tk.StringVar()
 
+        # For sequence A
         self.sequence_a_label = tk.Label(self.sequence_a_frame, text="Sequence A")
         self.sequence_a_label.grid(row=0, column=0, padx=10, pady=10)
 
         self.sequence_a_entry = tk.Entry(self.sequence_a_frame, textvariable=self.text_a, width=60)
         self.sequence_a_entry.grid(row=0, column=1, padx=10, pady=10)
+        
+        self.get_objects_a_button = tk.Button(self.sequence_a_frame, text="Get objects", command=self.get_objects_from_text)
+        self.get_objects_a_button.grid(row=0, column=2, padx=10, pady=10)
 
-        self.sequence_a_button = tk.Button(self.sequence_a_frame, text="Search", command=self.search_sequence_a)
-        self.sequence_a_button.grid(row=0, column=2, padx=10, pady=10)
+        self.object_a_label = tk.Label(self.sequence_a_frame, text="Objects of A")
+        self.object_a_label.grid(row=0, column=3, padx=10, pady=10)
 
+        self.object_a_entry = tk.Entry(self.sequence_a_frame, textvariable=self.object_a, width=30)
+        self.object_a_entry.grid(row=0, column=4, padx=10, pady=10)
+
+        self.sequence_a_button_sim = tk.Button(self.sequence_a_frame, text="Search by similarity", command=lambda: self.search_sequence_a('sim'))
+        self.sequence_a_button_sim.grid(row=0, column=5, padx=10, pady=10)
+
+        self.sequence_a_button_object = tk.Button(self.sequence_a_frame, text="Search by object", command=lambda: self.search_sequence_a('object'))
+        self.sequence_a_button_object.grid(row=0, column=6, padx=10, pady=10)
+
+        self.sequence_a_button_both = tk.Button(self.sequence_a_frame, text="Search by both", command=lambda: self.search_sequence_a('both'))
+        self.sequence_a_button_both.grid(row=0, column=7, padx=10, pady=10)
+
+        # For sequence B
         self.sequence_b_label = tk.Label(self.sequence_b_frame, text="Sequence B")
         self.sequence_b_label.grid(row=0, column=0, padx=10, pady=10)
 
         self.sequence_b_entry = tk.Entry(self.sequence_b_frame, textvariable=self.text_b, width=60)
         self.sequence_b_entry.grid(row=0, column=1, padx=10, pady=10)
+        
+        self.get_objects_b_button = tk.Button(self.sequence_b_frame, text="Get objects", command=self.get_objects_from_text)
+        self.get_objects_b_button.grid(row=0, column=2, padx=10, pady=10)
 
-        self.sequence_b_button = tk.Button(self.sequence_b_frame, text="Search", command=self.search_sequence_b)
-        self.sequence_b_button.grid(row=0, column=2, padx=10, pady=10)
+        self.object_b_label = tk.Label(self.sequence_b_frame, text="Objects of B")
+        self.object_b_label.grid(row=0, column=3, padx=10, pady=10)
+
+        self.object_b_entry = tk.Entry(self.sequence_b_frame, textvariable=self.object_b, width=30)
+        self.object_b_entry.grid(row=0, column=4, padx=10, pady=10)
+
+        self.sequence_b_button_sim = tk.Button(self.sequence_b_frame, text="Search by similarity", command=lambda: self.search_sequence_b('sim'))
+        self.sequence_b_button_sim.grid(row=0, column=5, padx=10, pady=10)
+
+        self.sequence_b_button_object = tk.Button(self.sequence_b_frame, text="Search by object", command=lambda: self.search_sequence_b('object'))
+        self.sequence_b_button_object.grid(row=0, column=6, padx=10, pady=10)
+
+        self.sequence_b_button_both = tk.Button(self.sequence_b_frame, text="Search by both", command=lambda: self.search_sequence_b('both'))
+        self.sequence_b_button_both.grid(row=0, column=7, padx=10, pady=10)
+
+
 
         self.scale = tk.Scale(self.sequence_b_frame, from_=1, to=10, orient="horizontal", length=50)
         self.scale.grid(row=1, column=0, padx=10, pady=10)
@@ -203,7 +246,8 @@ class ImageApp:
 
         # self.open_image_button = tk.Button(self.image_info_frame, text="Open Image", command=self.open_image)
         # self.open_image_button.pack(side="left")
-
+    def get_objects_from_text(self):
+        print('get objects')
 
     def search_next(self, selected_img):
         print('next')
@@ -329,20 +373,22 @@ class ImageApp:
         self.image_display_c_frame.update()
         self.image_display_c_canvas.configure(scrollregion=self.image_display_c_canvas.bbox('all'))
 
-    def search_sequence_a(self):
+    def search_sequence_a(self, mode):
         text_a = self.text_a.get()
-        self.search(text_a, 'a')
+        object_a = text_to_list(self.object_a.get())
+        self.search(text_a, object_a, 'a', mode)
 
-    def search_sequence_b(self):
+    def search_sequence_b(self, mode):
         text_b = self.text_b.get()
-        self.search(text_b, 'b')
+        object_b = text_to_list(self.object_b.get())
+        self.search(text_b, object_b, 'b', mode)
 
     def get_slider_value(self):
         value = self.scale.get()
         self.value_label.config(text=f"Slider Value: {value}")
         return value
     
-    def search(self, text, panel):
+    def search(self, text, object, panel, mode):
 
         if panel == 'a':
             image_display_frame = self.image_display_a_frame
@@ -351,7 +397,21 @@ class ImageApp:
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
-        view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+        if mode == 'sim':
+            view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+        elif mode == 'object':
+            view = (
+                self.dataset
+                .filter_labels("object_faster_rcnn", F("label").is_in(object), k=200)
+                # .sort_by(F("predictions.detections").length(), k=200, reverse=True)
+            )
+        elif mode == 'both':
+            view = (
+                self.dataset
+                .sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+                .filter_labels("object_faster_rcnn", F("label").is_in(object), k=200)
+            )
+        
         images_paths = []
 
         for seq in view:
