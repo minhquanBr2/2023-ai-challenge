@@ -607,8 +607,8 @@ if __name__ == "__main__":
     # dataset.persistent = True
 
     # Hoang's line. please dont delete
-    dataset = fo.load_dataset('aic2023-kf-1-full')
-    # dataset = fo.load_dataset('aic2023-L01-L20')
+    # dataset = fo.load_dataset('aic2023-kf-1-full')
+    dataset = fo.load_dataset('aic2023-L01-L20')
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
