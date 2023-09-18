@@ -377,7 +377,9 @@ class ImageApp:
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
-        view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_qdrant", dist_field = "similarity")
+        # Hoang's line. please dont delete
+        # view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_qdrant", dist_field = "similarity")
+        view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
         images_paths = []
 
         for seq in view:
@@ -546,7 +548,10 @@ if __name__ == "__main__":
     # set up data
     # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-L01-L20", tags=None, recursive=True)
     # dataset.persistent = True
-    dataset = fo.load_dataset('aic2023-kf-1-full')
+
+    # Hoang's line. please dont delete
+    # dataset = fo.load_dataset('aic2023-kf-1-full')
+    dataset = fo.load_dataset('aic2023-L01-L20')
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
