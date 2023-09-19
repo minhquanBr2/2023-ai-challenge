@@ -429,15 +429,16 @@ class ImageApp:
         elif mode == 'object':
             view = (
                 self.dataset
-                .filter_labels("object_faster_rcnn", F("label").is_in(object), k=200)
-                # .sort_by(F("predictions.detections").length(), k=200, reverse=True)
-            )
+                .filter_labels("object_faster_rcnn", F("label").is_in(object))
+                .sort_by(F("predictions.detections").length(), reverse=True)
+            )[:200]
         elif mode == 'both':
             view = (
                 self.dataset
                 .sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
-                .filter_labels("object_faster_rcnn", F("label").is_in(object), k=200)
-            )
+                .filter_labels("object_faster_rcnn", F("label").is_in(object))
+                .sort_by(F("predictions.detections").length(), reverse=True)
+            )[:200]
         
         images_paths = []
 
@@ -473,7 +474,6 @@ class ImageApp:
 
         for i in range(len(image_paths)):
             path, video_name, keyframe_index = image_paths[i]
-            print(video_name, keyframe_index)
 
             image = Image.open(path)
             image = image.resize((160, 90), Image.LANCZOS)
@@ -495,6 +495,8 @@ class ImageApp:
 
             # Add label to list
             image_labels.append(label)
+
+        print(f"Found {len(image_paths)} images.")
 
     def update_image_display_from_ImageTK(self, images, panel, video_name, frame_indices):
 
