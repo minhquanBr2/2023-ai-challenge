@@ -22,6 +22,23 @@ import subprocess
 # to do
 # image_folder = 
 
+
+def extract_video_frame_from_path(file_path):
+    # Split the file path using backslashes as the delimiter
+    parts = file_path.split('\\')
+
+    # Check if the path contains at least 5 parts
+    if len(parts) >= 5:
+        video_name = parts[-2]  # The video name is the third-to-last part
+        frame_number = parts[-1].split('.')[0]  # Remove the file extension
+
+        return {
+            'video': video_name,
+            'frame': frame_number
+        }
+    else:
+        return None
+
 def text_to_list(text):
     list = text.split(',')
     cleaned_list = [chunk.strip() for chunk in list]
@@ -519,6 +536,7 @@ class ImageApp:
 
             # Bind a click event to the image label
             label.bind("<Button-1>", lambda e, photo=photo, frame_index=frame_index: self.on_image_click(panel='d', video_name=video_name, frame_index=frame_index))
+            # label.bind("<Button-1>", lambda e, path=path, video_name=video_name, frame_index=keyframe_index: self.on_image_click(panel=panel, image_path=path, video_name=video_name, frame_index=frame_index)
             image_labels.append(label)
             
         self.image_display_d_frame.update()
@@ -527,6 +545,10 @@ class ImageApp:
     def on_pair_click(self, panel = "", image_path_start=None, image_path_end = None):
         if panel != "c":
             return None
+        
+        result = extract_video_frame_from_path(image_path_start)
+        video_name = result['video']
+        self.selected_video_path = VideosFolder + '\\' + video_name + '.mp4'
         
         video_name = parse_direc(image_path_start)['video_name']
         kframe_start = parse_direc(image_path_start)['kframe']
