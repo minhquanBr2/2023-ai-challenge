@@ -355,8 +355,8 @@ class ImageApp:
                                 'filepath_start': seqA.filepath,
                                 'filepath_end': seqB.filepath,
                                 'video': seqA.video,
-                                'frame_start': seqA.frameid,
-                                'frame_end': seqB.frameid,
+                                'keyframe_start': seqA.frameid,
+                                'keyframe_end': seqB.frameid,
                             }))
                     else:
                         if (frameB < frameA and frameA - frameB < frame_epsilon):
