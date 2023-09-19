@@ -15,7 +15,7 @@ import csv
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames, extract_frames_between
-from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder
+from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder, DatasetName
 
 import subprocess
 
@@ -610,7 +610,7 @@ if __name__ == "__main__":
 
     # Hoang's line. please dont delete
     # dataset = fo.load_dataset('aic2023-kf-1-full')
-    dataset = fo.load_dataset('aic2023-L01-L20')
+    dataset = fo.load_dataset(DatasetName)
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
