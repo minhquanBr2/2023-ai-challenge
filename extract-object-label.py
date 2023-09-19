@@ -13,7 +13,7 @@ def generate_response():
         "https://api.pawan.krd/v1/chat/completions",
         headers = {"Authorization" : f"Bearer {api_key}"},
         json={
-            "model": "pai-001-light-beta",
+            "model": "pai-001-beta",
             "max_tokens": 50,
             "temperature": 0.1,
             "messages" : [
@@ -22,6 +22,7 @@ def generate_response():
         },
     )
 
+    print(response.json())
     if response.ok:
         result = response.json()["choices"][0]["message"]["content"].strip()   
         return result
