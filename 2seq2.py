@@ -15,29 +15,29 @@ import csv
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames, extract_frames_between
-from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder
+from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder, BrainKey, DatasetName
 
 import subprocess
 
 # to do
 # image_folder = 
 
-def extract_video_frame_info(file_path):
+
+def extract_video_frame_from_path(file_path):
     # Split the file path using backslashes as the delimiter
     parts = file_path.split('\\')
-    
+
     # Check if the path contains at least 5 parts
     if len(parts) >= 5:
         video_name = parts[-2]  # The video name is the third-to-last part
         frame_number = parts[-1].split('.')[0]  # Remove the file extension
-        
+
         return {
             'video': video_name,
             'frame': frame_number
         }
     else:
         return None
-
 
 def text_to_list(text):
     list = text.split(',')
@@ -273,6 +273,12 @@ class ImageApp:
 
         # self.open_image_button = tk.Button(self.image_info_frame, text="Open Image", command=self.open_image)
         # self.open_image_button.pack(side="left")
+
+
+        # info frame buttons
+        open_button = tk.Button(self.info_display, text="Open Video", command=self.on_open_video_click)
+        open_button.pack()
+
     def get_objects_from_text(self):
         print('get objects')
 
@@ -349,8 +355,8 @@ class ImageApp:
                                 'filepath_start': seqA.filepath,
                                 'filepath_end': seqB.filepath,
                                 'video': seqA.video,
-                                'frame_start': seqA.frameid,
-                                'frame_end': seqB.frameid,
+                                'keyframe_start': seqA.frameid,
+                                'keyframe_end': seqB.frameid,
                             }))
                     else:
                         if (frameB < frameA and frameA - frameB < frame_epsilon):
@@ -427,7 +433,7 @@ class ImageApp:
             image_display_canvas = self.image_display_b_canvas
 
         if mode == 'sim':
-            view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+            view = self.dataset.sort_by_similarity(text, k=200, brain_key = BrainKey, dist_field = "similarity")
         elif mode == 'object':
             view = (
                 self.dataset
@@ -437,7 +443,7 @@ class ImageApp:
         elif mode == 'both':
             view = (
                 self.dataset
-                .sort_by_similarity(text, k=300, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+                .sort_by_similarity(text, k=300, brain_key = BrainKey, dist_field = "similarity")
                 .filter_labels("object_faster_rcnn", F("label").is_in(object))
                 .sort_by(F("predictions.detections").length(), reverse=True)
             )[:200]
@@ -533,6 +539,7 @@ class ImageApp:
 
             # Bind a click event to the image label
             label.bind("<Button-1>", lambda e, photo=photo, frame_index=frame_index: self.on_image_click(panel='d', video_name=video_name, frame_index=frame_index))
+            # label.bind("<Button-1>", lambda e, path=path, video_name=video_name, frame_index=keyframe_index: self.on_image_click(panel=panel, image_path=path, video_name=video_name, frame_index=frame_index)
             image_labels.append(label)
             
         self.image_display_d_frame.update()
@@ -541,6 +548,10 @@ class ImageApp:
     def on_pair_click(self, panel = "", image_path_start=None, image_path_end = None):
         if panel != "c":
             return None
+        
+        result = extract_video_frame_from_path(image_path_start)
+        video_name = result['video']
+        self.selected_video_path = VideosFolder + '\\' + video_name + '.mp4'
         
         video_name = parse_direc(image_path_start)['video_name']
         kframe_start = parse_direc(image_path_start)['kframe']
@@ -611,9 +622,7 @@ if __name__ == "__main__":
     # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-L01-L20", tags=None, recursive=True)
     # dataset.persistent = True
 
-    # Hoang's line. please dont delete
-    # dataset = fo.load_dataset('aic2023-kf-1-full')
-    dataset = fo.load_dataset('aic2023-L01-L20')
+    dataset = fo.load_dataset(DatasetName)
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
