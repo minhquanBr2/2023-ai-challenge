@@ -429,15 +429,16 @@ class ImageApp:
         elif mode == 'object':
             view = (
                 self.dataset
-                .filter_labels("object_faster_rcnn", F("label").is_in(object), k=200)
-                # .sort_by(F("predictions.detections").length(), k=200, reverse=True)
-            )
+                .filter_labels("object_faster_rcnn", F("label").is_in(object))
+                .sort_by(F("predictions.detections").length(), reverse=True)
+            )[:200]
         elif mode == 'both':
             view = (
                 self.dataset
                 .sort_by_similarity(text, k=200, brain_key = BrainKey, dist_field = "similarity")
-                .filter_labels("object_faster_rcnn", F("label").is_in(object), k=200)
-            )
+                .filter_labels("object_faster_rcnn", F("label").is_in(object))
+                .sort_by(F("predictions.detections").length(), reverse=True)
+            )[:200]
         
         images_paths = []
 
@@ -473,7 +474,6 @@ class ImageApp:
 
         for i in range(len(image_paths)):
             path, video_name, keyframe_index = image_paths[i]
-            print(video_name, keyframe_index)
 
             image = Image.open(path)
             image = image.resize((160, 90), Image.LANCZOS)
@@ -486,17 +486,17 @@ class ImageApp:
             label.grid(row=i//2, column=i%2)
 
             # Create a label for the video name and frame index
-            filename_label = tk.Label(image_display_frame, text=f"{video_name}, {keyframe_index}", anchor='sw', bg='white')
+            filename_label = tk.Label(image_display_frame, text=f"{video_name}, {keyframe_index}, {get_frame_info(video_name, keyframe_index)}", anchor='sw', bg='white')
             filename_label.grid(row=i // 2, column=i % 2, sticky='sw')
 
             # Bind a click event to the image label
-            result = extract_video_frame_info(path)
-            video = result['video']
-            frame = result['frame']
-            label.bind("<Button-1>", lambda e, path=path: self.on_image_click(panel=panel, image_path=path, video_name=video, frame_index=frame))
+
+            label.bind("<Button-1>", lambda e, path=path, video_name=video_name, frame_index=keyframe_index: self.on_image_click(panel=panel, image_path=path, video_name=video_name, frame_index=frame_index))
 
             # Add label to list
             image_labels.append(label)
+
+        print(f"Found {len(image_paths)} images.")
 
     def update_image_display_from_ImageTK(self, images, panel, video_name, frame_indices):
 
