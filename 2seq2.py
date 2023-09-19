@@ -360,8 +360,8 @@ class ImageApp:
                                 'filepath_start': seqB.filepath,
                                 'filepath_end': seqA.filepath,
                                 'video': seqA.video,
-                                'frame_start': seqB.frameid,
-                                'frame_end': seqA.frameid,
+                                'keyframe_start': seqB.frameid,
+                                'keyframe_end': seqA.frameid,
                             }))
                     
         print('Number of pairs found:', len(results))
@@ -371,8 +371,10 @@ class ImageApp:
             path_start = results[i][1]['filepath_start']
             path_end = results[i][1]['filepath_end']
             video_name = results[i][1]['video']
-            frame_index_start = results[i][1]['frame_start']
-            frame_index_end = results[i][1]['frame_end']
+            keyframe_index_start = results[i][1]['keyframe_start']
+            keyframe_index_end = results[i][1]['keyframe_end']
+            frame_index_start = get_frame_info(video_name, keyframe_index_start)['frame_idx']
+            frame_index_end = get_frame_info(video_name, keyframe_index_end)['frame_idx']
 
             image_start = Image.open(path_start).resize((160, 90), Image.LANCZOS)
             image_end = Image.open(path_end).resize((160, 90), Image.LANCZOS)
@@ -435,7 +437,7 @@ class ImageApp:
         elif mode == 'both':
             view = (
                 self.dataset
-                .sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+                .sort_by_similarity(text, k=300, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
                 .filter_labels("object_faster_rcnn", F("label").is_in(object))
                 .sort_by(F("predictions.detections").length(), reverse=True)
             )[:200]
@@ -474,6 +476,7 @@ class ImageApp:
 
         for i in range(len(image_paths)):
             path, video_name, keyframe_index = image_paths[i]
+            frame_index = get_frame_info(video_name, keyframe_index)['frame_idx']
 
             image = Image.open(path)
             image = image.resize((160, 90), Image.LANCZOS)
@@ -486,7 +489,7 @@ class ImageApp:
             label.grid(row=i//2, column=i%2)
 
             # Create a label for the video name and frame index
-            filename_label = tk.Label(image_display_frame, text=f"{video_name}, {keyframe_index}, {get_frame_info(video_name, keyframe_index)}", anchor='sw', bg='white')
+            filename_label = tk.Label(image_display_frame, text=f"{video_name}, {frame_index}", anchor='sw', bg='white')
             filename_label.grid(row=i // 2, column=i % 2, sticky='sw')
 
             # Bind a click event to the image label

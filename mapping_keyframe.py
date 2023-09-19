@@ -37,7 +37,7 @@ def get_frame_info(video_name, keyframe_name, csv_folder = CsvFolder):
 
         for row in csv_reader:
             frame_idx = int(row['n'])
-            keyframe_file_idx = keyframe_name
+            keyframe_file_idx = int(keyframe_name)
             
             if frame_idx == keyframe_file_idx:
                 return {
