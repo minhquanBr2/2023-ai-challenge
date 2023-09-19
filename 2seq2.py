@@ -22,23 +22,6 @@ import subprocess
 # to do
 # image_folder = 
 
-def extract_video_frame_info(file_path):
-    # Split the file path using backslashes as the delimiter
-    parts = file_path.split('\\')
-    
-    # Check if the path contains at least 5 parts
-    if len(parts) >= 5:
-        video_name = parts[-2]  # The video name is the third-to-last part
-        frame_number = parts[-1].split('.')[0]  # Remove the file extension
-        
-        return {
-            'video': video_name,
-            'frame': frame_number
-        }
-    else:
-        return None
-
-
 def text_to_list(text):
     list = text.split(',')
     cleaned_list = [chunk.strip() for chunk in list]
@@ -273,6 +256,12 @@ class ImageApp:
 
         # self.open_image_button = tk.Button(self.image_info_frame, text="Open Image", command=self.open_image)
         # self.open_image_button.pack(side="left")
+
+
+        # info frame buttons
+        open_button = tk.Button(self.info_display, text="Open Video", command=self.on_open_video_click)
+        open_button.pack()
+
     def get_objects_from_text(self):
         print('get objects')
 
