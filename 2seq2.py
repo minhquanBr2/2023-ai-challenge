@@ -15,7 +15,7 @@ import csv
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames, extract_frames_between
-from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder
+from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder, BrainKey, DatasetName
 
 import subprocess
 
@@ -425,7 +425,7 @@ class ImageApp:
             image_display_canvas = self.image_display_b_canvas
 
         if mode == 'sim':
-            view = self.dataset.sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+            view = self.dataset.sort_by_similarity(text, k=200, brain_key = BrainKey, dist_field = "similarity")
         elif mode == 'object':
             view = (
                 self.dataset
@@ -435,7 +435,7 @@ class ImageApp:
         elif mode == 'both':
             view = (
                 self.dataset
-                .sort_by_similarity(text, k=200, brain_key = "img_sim_32_qdrant", dist_field = "similarity")
+                .sort_by_similarity(text, k=200, brain_key = BrainKey, dist_field = "similarity")
                 .filter_labels("object_faster_rcnn", F("label").is_in(object), k=200)
             )
         
@@ -608,9 +608,7 @@ if __name__ == "__main__":
     # dataset = fo.Dataset.from_images_dir(KeyframeFolder, name="aic2023-L01-L20", tags=None, recursive=True)
     # dataset.persistent = True
 
-    # Hoang's line. please dont delete
-    # dataset = fo.load_dataset('aic2023-kf-1-full')
-    dataset = fo.load_dataset('aic2023-L01-L20')
+    dataset = fo.load_dataset(DatasetName)
 
     # for sample in dataset:
     #     _, sample['video'], sample['frameid'] = sample['filepath'][:-4].rsplit('\\', 2)
