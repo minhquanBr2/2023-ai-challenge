@@ -1,0 +1,9 @@
+pip install paddlepaddle
+
+(cái này optional) pip install wheel 
+pip install --upgrade pip
+pip install --upgrde setuptools
+pip install --force-reinstall -v "protobuf==3.20.0"
+
+pip install paddleocr
+pip install -r requirements.txt

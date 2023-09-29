@@ -1,0 +1,8 @@
+docker pull qdrant/qdrant
+docker run -p 6333:6333 qdrant/qdrant
+
+a world map centering on the united states
+inside a house being destroyed by an earthquake
+
+a woman reporting news with background of the city sky
+a woman reporting news with background of the city sky
