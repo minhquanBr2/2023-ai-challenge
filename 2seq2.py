@@ -277,7 +277,17 @@ class ImageApp:
 
         # info frame buttons
         open_button = tk.Button(self.info_display, text="Open Video", command=self.on_open_video_click)
-        open_button.pack()
+        open_button.pack(side = 'left')
+
+        # Create a button to open the file dialog
+        upload_button = tk.Button(self.info_display, text="Upload Image", command= self.open_file_dialog)
+        upload_button.pack(side = 'left', pady=10)
+
+    def open_file_dialog(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png *.jpg *.jpeg *.gif *.bmp *.tiff *.ppm")])
+        if file_path:
+            # Do something with the selected file, e.g., display it in an Image widget
+            print("Selected file:", file_path)
 
     def get_objects_from_text(self):
         print('get objects')
