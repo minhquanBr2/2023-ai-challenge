@@ -32,7 +32,7 @@ from tools.infer.predict_system import main
 # de y la phai cd ocr/paddle-ocr
 
 # python test-ocr.py --use_gpu=False --det_model_dir="inference/det" --det_algorithm="DB++" --rec_model_dir="inference/rec" --rec_algorithm="SPIN" --rec_image_shape="3,32,320" --drop_score=0.001 --rec_char_dict_path="./vietnamese-dict.txt" --use_space_char=False --vis_font_path=font-times-new-roman.ttf --show_log=False --text_folder="H:\AI_CHALLENGE\Text" --folder_path="H:\AI_CHALLENGE\Keyframes\Keyframes_L01\keyframes"
-
+# xai cai nay ne # python ocr/paddle-ocr/test-ocr.py --use_gpu=True --det_model_dir="/kaggle/input/inference/inference/det" --det_algorithm="DB++" --rec_model_dir="/kaggle/input/inference/inference/rec" --rec_algorithm="SPIN" --rec_image_shape="3,32,320" --drop_score=0.001 --rec_char_dict_path="/kaggle/working/2023-ai-challenge/ocr/paddle-ocr/vietnamese-dict.txt" --use_space_char=False --vis_font_path=font-times-new-roman.ttf --show_log=False --text_folder="/kaggle/working/text" --folder_path="/kaggle/input/keyframes-l05"
 # Thu muc luu cac file ocr
 text_folder = "H:\\AI_CHALLENGE\\Text"
 
@@ -70,7 +70,7 @@ def process_folder(args, folder_name):
 
     folder_parts = folder_name.split("\\")
     last_part = folder_parts[-1]
-    output_folder = args.text_folder + "\\" + last_part
+    output_folder = args.text_folder
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -82,7 +82,7 @@ def process_folder(args, folder_name):
 
     for x in res:
         text_file = x['image_name'].split(".")[0] + '.txt'
-        with open(output_folder + "\\" + text_file, 'w', encoding='utf-8') as file:
+        with open(output_folder + "/" + text_file, 'w', encoding='utf-8') as file:
             # Write content to the file if needed
             for str in x['transcriptions']:
                 file.write(str + '\n')
