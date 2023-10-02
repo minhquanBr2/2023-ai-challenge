@@ -16,6 +16,7 @@ import heapq
 from mapping_keyframe import get_frame_info, parse_direc
 from extract_frame import extract_frames, extract_frames_between
 from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder, BrainKey, DatasetName
+from ocr.search.whoosh_search import search_text_ocr
 
 import subprocess
 
@@ -238,7 +239,7 @@ class ImageApp:
         self.sequence_signA_entry = tk.Entry(self.sequence_signA_frame, textvariable=self.text_signA, width=60)
         self.sequence_signA_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.sequence_signA_button = tk.Button(self.sequence_signA_frame, text="Search Sign Title", command=lambda: self.search_sign_A())
+        self.sequence_signA_button = tk.Button(self.sequence_signA_frame, text="Search Sign Title", command=lambda: self.search_sign('A'))
         self.sequence_signA_button.grid(row=0, column=5, padx=10, pady=10)
 
         # For sequence B
@@ -273,7 +274,7 @@ class ImageApp:
         self.sequence_signB_entry = tk.Entry(self.sequence_signB_frame, textvariable=self.text_signB, width=60)
         self.sequence_signB_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.sequence_signB_button = tk.Button(self.sequence_signB_frame, text="Search Sign Title", command=lambda: self.search_sign_A())
+        self.sequence_signB_button = tk.Button(self.sequence_signB_frame, text="Search Sign Title", command=lambda: self.search_sign('B'))
         self.sequence_signB_button.grid(row=0, column=5, padx=10, pady=10)
 
 
@@ -320,6 +321,40 @@ class ImageApp:
 
     def get_objects_from_text(self):
         print('get objects')
+    
+    def search_sign(self, panel):
+        topN = 30
+        results = []
+        images_paths = []
+        if panel == 'A':
+            image_display_frame = self.image_display_a_frame
+            image_display_canvas = self.image_display_a_canvas
+        elif panel == 'B':
+            image_display_frame = self.image_display_b_frame
+            image_display_canvas = self.image_display_b_canvas
+
+        if (panel == "A"):
+            text_sign_a = self.text_signA.get()
+            results = search_text_ocr(text_sign_a, topN)
+        elif (panel == "B"):
+            text_sign_b = self.text_signB.get()
+            results = search_text_ocr(text_sign_b, topN)
+
+        self.update_image_display_from_path(results, panel)
+        image_display_frame.update()
+        image_display_canvas.configure(scrollregion=image_display_canvas.bbox('all'))
+
+        # if panel == 'A':
+        #     self.view_a = view
+        # elif panel == 'A':
+        #     self.view_b = view
+        print('finish')
+
+
+
+
+
+        
 
     def search_next(self, selected_img):
         print('next')

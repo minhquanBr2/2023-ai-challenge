@@ -22,7 +22,7 @@ def createSearchableData(root, path):
     # https://stackoverflow.com/questions/42769299/whoosh-not-searching-words-with-accent
     accent_analyzer = RegexAnalyzer(r'\w+') | LowercaseFilter() \
                   | StopFilter() | CharsetFilter(charmap=charmap)
-    schema = Schema(video_name=TEXT(stored=True), keyframe_idx=TEXT(stored=True), 
+    schema = Schema(path = TEXT(stored=True), video_name=TEXT(stored=True), keyframe_idx=TEXT(stored=True), 
                     content=TEXT, textdata=TEXT(stored=True, analyzer=accent_analyzer))
     
     if not os.path.exists("indexdir"):
@@ -38,7 +38,11 @@ def createSearchableData(root, path):
         fp = open(path, 'r', encoding="utf-8")
         print(path)
         text = fp.read()
-        writer.add_document(video_name=path.split("\\")[-2], keyframe_idx=path.split("\\")[-1][:-4], content=text, textdata=text)
+        writer.add_document(path=path,
+                            video_name=path.split("\\")[-2], 
+                            keyframe_idx=path.split("\\")[-1][:-4], 
+                            content=text, 
+                            textdata=text)
         fp.close()
     writer.commit()
  
