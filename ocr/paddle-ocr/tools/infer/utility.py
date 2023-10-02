@@ -147,6 +147,10 @@ def init_args():
 
     parser.add_argument("--show_log", type=str2bool, default=True)
     parser.add_argument("--use_onnx", type=str2bool, default=False)
+
+    parser.add_argument("--text_folder", type=str)
+    parser.add_argument("--folder_path", type=str)
+
     return parser
 
 
