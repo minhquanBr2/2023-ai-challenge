@@ -1,1 +1,4 @@
 GlobalLink.py
+ocr/dataset
+ocr/inference
+ocr/inference_results
