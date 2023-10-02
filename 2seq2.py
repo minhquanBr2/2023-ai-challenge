@@ -73,10 +73,16 @@ class ImageApp:
         # FOR INPUT
         # ở đây ta có 2 frame ở vị trí top, mỗi frame ứng với 1 dòng label + 1 ô nhập text + 1 nút search
         self.sequence_a_frame = tk.Frame(self.root)
-        self.sequence_a_frame.pack(side="top")
+        self.sequence_a_frame.pack(side="top", anchor="w")
+        
+        self.sequence_signA_frame = tk.Frame(self.root)
+        self.sequence_signA_frame.pack(side="top", anchor="w")
 
         self.sequence_b_frame = tk.Frame(self.root)
-        self.sequence_b_frame.pack(side="top")
+        self.sequence_b_frame.pack(side="top", anchor="w")
+
+        self.sequence_signB_frame = tk.Frame(self.root)
+        self.sequence_signB_frame.pack(side="top", anchor="w")
 
         # info_display: frame dùng để hiển thị thông tin của frame đã chọn
         self.info_display = tk.Frame(self.root)
@@ -194,6 +200,9 @@ class ImageApp:
         # For inputing sequences
         self.text_a = tk.StringVar()
         self.text_b = tk.StringVar()
+        self.text_signA = tk.StringVar()
+        self.text_signB = tk.StringVar()
+
         self.object_a = tk.StringVar()
         self.object_b = tk.StringVar()
 
@@ -222,6 +231,16 @@ class ImageApp:
         self.sequence_a_button_both = tk.Button(self.sequence_a_frame, text="Search by both", command=lambda: self.search_sequence_a('both'))
         self.sequence_a_button_both.grid(row=0, column=7, padx=10, pady=10)
 
+        # For SignLabel A
+        self.sequence_signA_label = tk.Label(self.sequence_signA_frame, text="Sign Title A")
+        self.sequence_signA_label.grid(row=0, column=0, padx=10, pady=10)
+
+        self.sequence_signA_entry = tk.Entry(self.sequence_signA_frame, textvariable=self.text_signA, width=60)
+        self.sequence_signA_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        self.sequence_signA_button = tk.Button(self.sequence_signA_frame, text="Search Sign Title", command=lambda: self.search_sign_A())
+        self.sequence_signA_button.grid(row=0, column=5, padx=10, pady=10)
+
         # For sequence B
         self.sequence_b_label = tk.Label(self.sequence_b_frame, text="Sequence B")
         self.sequence_b_label.grid(row=0, column=0, padx=10, pady=10)
@@ -247,18 +266,28 @@ class ImageApp:
         self.sequence_b_button_both = tk.Button(self.sequence_b_frame, text="Search by both", command=lambda: self.search_sequence_b('both'))
         self.sequence_b_button_both.grid(row=0, column=7, padx=10, pady=10)
 
+        # For SignLabel B
+        self.sequence_signB_label = tk.Label(self.sequence_signB_frame, text="Sign Title B")
+        self.sequence_signB_label.grid(row=0, column=0, padx=10, pady=10)
+
+        self.sequence_signB_entry = tk.Entry(self.sequence_signB_frame, textvariable=self.text_signB, width=60)
+        self.sequence_signB_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        self.sequence_signB_button = tk.Button(self.sequence_signB_frame, text="Search Sign Title", command=lambda: self.search_sign_A())
+        self.sequence_signB_button.grid(row=0, column=5, padx=10, pady=10)
 
 
-        self.scale = tk.Scale(self.sequence_b_frame, from_=1, to=10, orient="horizontal", length=50)
-        self.scale.grid(row=1, column=0, padx=10, pady=10)
+
+        # self.scale = tk.Scale(self.sequence_b_frame, from_=1, to=10, orient="horizontal", length=50)
+        # self.scale.grid(row=1, column=0, padx=10, pady=10)
 
         # # Create a button to get the slider value
         # get_value_button = tk.Button(root, text="Get Slider Value", command=self.get_slider_value)
         # get_value_button.pack()
 
         # Create a label to display the slider value
-        self.value_label = tk.Label(self.sequence_b_frame, text="")
-        self.value_label.grid(row=1, column=1, padx=10, pady=10)
+        # self.value_label = tk.Label(self.sequence_b_frame, text="")
+        # self.value_label.grid(row=1, column=1, padx=10, pady=10)
 
         
 
