@@ -148,12 +148,13 @@ def main(args):
     image_file_list = get_image_file_list(args.image_dir)
     image_file_list = image_file_list[args.process_id::args.total_process_num]
     text_sys = TextSystem(args)
-    is_visualize = True
+    is_visualize = False
     font_path = args.vis_font_path
     drop_score = args.drop_score
     draw_img_save_dir = args.draw_img_save_dir
     os.makedirs(draw_img_save_dir, exist_ok=True)
     save_results = []
+    result_data = []
 
     logger.info(
         "In PP-OCRv3, rec_image_shape parameter defaults to '3, 48, 320', "
@@ -171,7 +172,7 @@ def main(args):
     _st = time.time()
     count = 0
     for idx, image_file in enumerate(image_file_list):
-
+        print(os.path.basename(image_file))
         img, flag_gif, flag_pdf = check_and_read(image_file)
         if not flag_gif and not flag_pdf:
             img = cv2.imread(image_file)
@@ -212,6 +213,12 @@ def main(args):
             else:
                 save_pred = os.path.basename(image_file) + "\t" + json.dumps(
                     res, ensure_ascii=False) + "\n"
+            result_data.append(
+                {
+                    'image_name': os.path.basename(image_file),
+                    'transcriptions': [x['transcription'] for x in res],
+                }
+            )
             save_results.append(save_pred)
 
             if is_visualize:
@@ -252,6 +259,7 @@ def main(args):
             'w',
             encoding='utf-8') as f:
         f.writelines(save_results)
+    return result_data
 
 
 if __name__ == "__main__":
