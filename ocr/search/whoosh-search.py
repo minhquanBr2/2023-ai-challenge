@@ -17,4 +17,4 @@ results = searcher.search(query)
 print(results)
 
 for i in range(min(topN, len(results))):
-    print(results[i]['title'], str(results[i].score), results[i]['textdata'])
+    print(results[i]['video_name'], results[i]['keyframe_idx'], str(results[i].score), results[i]['textdata'])
