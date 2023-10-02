@@ -13,7 +13,7 @@ topN = int(sys.argv[2])
 searcher = ix.searcher(weighting=scoring.TF_IDF)
 query = QueryParser("content", ix.schema).parse(query_str)
 results = searcher.search(query)
-print(results)
+print(query)
 
-for i in range(len(results)):
+for i in range(min(topN, len(results))):
     print(results[i]['title'], str(results[i].score), results[i]['textdata'])
