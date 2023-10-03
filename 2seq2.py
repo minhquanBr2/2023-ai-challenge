@@ -323,7 +323,7 @@ class ImageApp:
         print('get objects')
     
     def search_sign(self, panel):
-        topN = 30
+        topN = 100
         results = []
         images_paths = []
         if panel == 'A':
