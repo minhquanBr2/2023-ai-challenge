@@ -68,7 +68,7 @@ def process_folders(args, folder_path):
 def process_folder(args, folder_name):
     print(f"Processing folder: {folder_name}")
 
-    folder_parts = folder_name.split("\\")
+    folder_parts = folder_name.split("/")
     last_part = folder_parts[-1]
     output_folder = args.text_folder
 
