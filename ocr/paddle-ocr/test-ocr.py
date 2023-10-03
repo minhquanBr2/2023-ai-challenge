@@ -82,7 +82,7 @@ def process_folder(args, folder_name):
 
     for x in res:
         text_file = x['image_name'].split(".")[0] + '.txt'
-        with open(output_folder + "/" + text_file, 'w', encoding='utf-8') as file:
+        with open(output_folder + "/" + last_part + "/" + text_file, 'w', encoding='utf-8') as file:
             # Write content to the file if needed
             for str in x['transcriptions']:
                 file.write(str + '\n')
