@@ -84,8 +84,11 @@ def process_folder(args, folder_name):
         text_file = x['image_name'].split(".")[0] + '.txt'
         with open(output_folder + "/" + last_part + "/" + text_file, 'w', encoding='utf-8') as file:
             # Write content to the file if needed
+            if (not os.path.exists(output_folder + "/" + last_part)):
+                os.makedirs(output_folder + "/" + last_part)
             for str in x['transcriptions']:
                 file.write(str + '\n')
+
 
 # Call the process_folders function to start the processing
 # process_folders(1, 4)
