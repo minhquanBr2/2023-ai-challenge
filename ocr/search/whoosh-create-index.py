@@ -3,6 +3,7 @@ from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID
 from whoosh.analysis import RegexAnalyzer, LowercaseFilter, StopFilter, CharsetFilter
 from glob import glob
+from GlobalLink import OCRTextFolder, SubtitleTextFolder, VietnameseDict
 
 
 def createAccentMap(path):
@@ -33,19 +34,21 @@ def createSearchableData(root, path):
     writer = ix.writer()
  
     # filepaths = [os.path.join(root, i) for i in os.listdir(root)]
-    filepaths = glob('E:\\AIChallenge\\corpus\\*\\*.txt')
-    for path in filepaths:
-        fp = open(path, 'r', encoding="utf-8")
-        print(path)
-        text = fp.read()
-        writer.add_document(path=path,
-                            video_name=path.split("\\")[-2], 
-                            keyframe_idx=path.split("\\")[-1][:-4], 
-                            content=text, 
-                            textdata=text)
-        fp.close()
+    folders = glob('OCRText' + '\\*\\')
+    for folder in folders:
+        print(folder)
+        filepaths = glob(folder + '*.txt')
+        for path in filepaths:
+            fp = open(path, 'r', encoding="utf-8")
+            text = fp.read()
+            writer.add_document(path=path,
+                                video_name=path.split("\\")[-2], 
+                                keyframe_idx=path.split("\\")[-1][:-4], 
+                                content=text, 
+                                textdata=text)
+            fp.close()
     writer.commit()
  
-root = "E:\\AIChallenge\\corpus"
-path = "D:\\University\\Contest\\AIChallenge\\2023-ai-challenge\\ocr\\search\\vietnamese-dict.txt"
+root = OCRTextFolder
+path = VietnameseDict
 createSearchableData(root, path)
