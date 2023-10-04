@@ -34,7 +34,7 @@ def createSearchableData(root, path):
     writer = ix.writer()
  
     # filepaths = [os.path.join(root, i) for i in os.listdir(root)]
-    folders = glob('OCRText' + '\\*\\')
+    folders = glob(OCRTextFolder + '\\*\\')
     for folder in folders:
         print(folder)
         filepaths = glob(folder + '*.txt')
