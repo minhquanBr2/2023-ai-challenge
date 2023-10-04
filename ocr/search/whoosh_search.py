@@ -7,7 +7,7 @@ import sys
 
 
 def search_text_ocr(query, topN):
-    ix = open_dir(".\\ocr\\search\\indexdir")
+    ix = open_dir("./indexdir")
     query_str = query
     searcher = ix.searcher(weighting=scoring.Frequency)
     query = QueryParser("content", ix.schema, termclass=FuzzyTerm).parse(query_str)
@@ -16,6 +16,7 @@ def search_text_ocr(query, topN):
     out_result = []
     for i in range(min(topN, len(results))):
         out_result.append((results[i]['path'], results[i]['video_name'], results[i]['keyframe_idx']))
+        print(results[i]['video_name'], results[i]['keyframe_idx'], results[i]['textdata'].replace('\n', ' '), "\n")
 
     
     print("Number of results:", len(results))
@@ -24,4 +25,4 @@ def search_text_ocr(query, topN):
     #     (results[i]['video_name'], results[i]['keyframe_idx'], str(results[i].score), results[i]['textdata'])
 
 if __name__ == "__main__":
-    search_text_ocr(u"bánh tráng", 100)
+    search_text_ocr(u"đại học quốc gia", 100)
