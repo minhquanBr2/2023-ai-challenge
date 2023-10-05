@@ -1,18 +1,15 @@
-import os
+from PIL import Image
+import requests
+from transformers import AutoProcessor, CLIPModel
 
-# Given directory string
-directory_string = r"E:\\AIChallenge\\Keyframes\\L01_V001\\0001.jpg"
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-# Split the string into components
-parts = directory_string.split(os.sep)
-print(parts)
-# Extract the video name and frame name
-video_name = parts[-3]
-frame_name_with_extension = parts[-1]
+url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+image = Image.open(requests.get(url, stream=True).raw)
 
-# Remove the file extension to get the frame name without extension
-frame_name = os.path.splitext(frame_name_with_extension)[0]
+inputs = processor(images=image, return_tensors="pt")
 
-# Print the extracted values
-print("Video Name:", video_name)
-print("Frame Name:", frame_name)
+image_features = model.get_image_features(**inputs)
+
+print(image_features.shape)

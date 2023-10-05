@@ -14,9 +14,9 @@ import csv
 
 import heapq
 from mapping_keyframe import get_frame_info, parse_direc
-from extract_frame import extract_frames, extract_frames_between
+from extract_frame import extract_frames, extract_frames_between, extract_frames_neighbor
 from GlobalLink import KeyframeFolder, ResultsCSV, VideosFolder, BrainKey, DatasetName
-from ocr.search.whoosh_search import search_text_ocr
+from ocr.search.whoosh_search import search_text_ocr, search_text_subtitle
 
 import subprocess
 
@@ -76,22 +76,30 @@ class ImageApp:
         self.sequence_a_frame = tk.Frame(self.root)
         self.sequence_a_frame.pack(side="top", anchor="w")
         
-        self.sequence_signA_frame = tk.Frame(self.root)
-        self.sequence_signA_frame.pack(side="top", anchor="w")
+        self.sequence_ocr_a_frame = tk.Frame(self.root)
+        self.sequence_ocr_a_frame.pack(side="top", anchor="w")
+        
+        self.sequence_subtitle_a_frame = tk.Frame(self.root)
+        self.sequence_subtitle_a_frame.pack(side="top", anchor="w")
 
         self.sequence_b_frame = tk.Frame(self.root)
         self.sequence_b_frame.pack(side="top", anchor="w")
 
-        self.sequence_signB_frame = tk.Frame(self.root)
-        self.sequence_signB_frame.pack(side="top", anchor="w")
+        self.sequence_ocr_b_frame = tk.Frame(self.root)
+        self.sequence_ocr_b_frame.pack(side="top", anchor="w")
+        
+        self.sequence_subtitle_b_frame = tk.Frame(self.root)
+        self.sequence_subtitle_b_frame.pack(side="top", anchor="w")
 
         # info_display: frame dùng để hiển thị thông tin của frame đã chọn
         self.info_display = tk.Frame(self.root)
         self.info_display.pack(side = "top")
 
-        # SELECTED IMAGE: các biến lưu các ảnh được chọn
-        self.selected_img_a = ""
-        self.selected_img_b = ""
+        # SELECTED IMAGE: các biến lưu path các ảnh được chọn
+        self.selected_img_path_a = ""
+        self.selected_img_path_b = ""
+        self.selected_img_vid_a, self.selected_img_frame_a = "", ""
+        self.selected_img_vid_b, self.selected_img_frame_b = "", ""
 
         # image_display: là cái frame được dùng như grid để bố trí các thành phần trên cửa sổ
         self.image_display = tk.Frame(self.root)
@@ -111,16 +119,16 @@ class ImageApp:
 
 
         # 6 search buttons at the bottom
-        self.search_a_prev_button = tk.Button(self.image_display, text="Search prev of A", command=lambda: self.search_prev(self.selected_img_a))
+        self.search_a_prev_button = tk.Button(self.image_display, text="Search prev of A", command=lambda: self.search_prev(self.selected_img_path_a))
         self.search_a_prev_button.grid(row=1, column=0, sticky=tk.E)
 
-        self.search_a_next_button = tk.Button(self.image_display, text="Search next of A", command=lambda: self.search_next(self.selected_img_a))
+        self.search_a_next_button = tk.Button(self.image_display, text="Search next of A", command=lambda: self.search_next(self.selected_img_path_a))
         self.search_a_next_button.grid(row=1, column=1, sticky=tk.W)
     
-        self.search_b_prev_button = tk.Button(self.image_display, text="Search prev of B", command=lambda: self.search_prev(self.selected_img_b))
+        self.search_b_prev_button = tk.Button(self.image_display, text="Search prev of B", command=lambda: self.search_prev(self.selected_img_path_b))
         self.search_b_prev_button.grid(row=1, column=2, sticky=tk.E)
     
-        self.search_b_next_button = tk.Button(self.image_display, text="Search next of B", command=lambda: self.search_next(self.selected_img_b))
+        self.search_b_next_button = tk.Button(self.image_display, text="Search next of B", command=lambda: self.search_next(self.selected_img_path_b))
         self.search_b_next_button.grid(row=1, column=3, sticky=tk.W)
 
         self.search_pair_ab_button = tk.Button(self.image_display, text="Search pair A-B", command=lambda: self.search_pair('ab'))
@@ -201,11 +209,14 @@ class ImageApp:
         # For inputing sequences
         self.text_a = tk.StringVar()
         self.text_b = tk.StringVar()
-        self.text_signA = tk.StringVar()
-        self.text_signB = tk.StringVar()
-
+        self.text_ocr_a = tk.StringVar()
+        self.text_ocr_b = tk.StringVar()
+        self.text_subtitle_a = tk.StringVar()
+        self.text_subtitle_b = tk.StringVar()
         self.object_a = tk.StringVar()
         self.object_b = tk.StringVar()
+
+
 
         # For sequence A
         self.sequence_a_label = tk.Label(self.sequence_a_frame, text="Sequence A")
@@ -232,15 +243,27 @@ class ImageApp:
         self.sequence_a_button_both = tk.Button(self.sequence_a_frame, text="Search by both", command=lambda: self.search_sequence_a('both'))
         self.sequence_a_button_both.grid(row=0, column=7, padx=10, pady=10)
 
-        # For SignLabel A
-        self.sequence_signA_label = tk.Label(self.sequence_signA_frame, text="Sign Title A")
-        self.sequence_signA_label.grid(row=0, column=0, padx=10, pady=10)
+        # For OCR text A
+        self.sequence_ocr_a_label = tk.Label(self.sequence_ocr_a_frame, text="OCR text A")
+        self.sequence_ocr_a_label.grid(row=0, column=0, padx=10, pady=10)
 
-        self.sequence_signA_entry = tk.Entry(self.sequence_signA_frame, textvariable=self.text_signA, width=60)
-        self.sequence_signA_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.sequence_ocr_a_entry = tk.Entry(self.sequence_ocr_a_frame, textvariable=self.text_ocr_a, width=60)
+        self.sequence_ocr_a_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.sequence_signA_button = tk.Button(self.sequence_signA_frame, text="Search Sign Title", command=lambda: self.search_sign('A'))
-        self.sequence_signA_button.grid(row=0, column=5, padx=10, pady=10)
+        self.sequence_ocr_a_button = tk.Button(self.sequence_ocr_a_frame, text="Search OCR", command=lambda: self.search_ocr('a'))
+        self.sequence_ocr_a_button.grid(row=0, column=5, padx=10, pady=10)
+
+        # For subtitle text A
+        self.sequence_subtitle_a_label = tk.Label(self.sequence_subtitle_a_frame, text="Subtitle text A")
+        self.sequence_subtitle_a_label.grid(row=0, column=0, padx=10, pady=10)
+
+        self.sequence_subtitle_a_entry = tk.Entry(self.sequence_subtitle_a_frame, textvariable=self.text_subtitle_a, width=60)
+        self.sequence_subtitle_a_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        self.sequence_subtitle_a_button = tk.Button(self.sequence_subtitle_a_frame, text="Search subtitle", command=lambda: self.search_subtitle('a'))
+        self.sequence_subtitle_a_button.grid(row=0, column=5, padx=10, pady=10)
+
+
 
         # For sequence B
         self.sequence_b_label = tk.Label(self.sequence_b_frame, text="Sequence B")
@@ -267,15 +290,25 @@ class ImageApp:
         self.sequence_b_button_both = tk.Button(self.sequence_b_frame, text="Search by both", command=lambda: self.search_sequence_b('both'))
         self.sequence_b_button_both.grid(row=0, column=7, padx=10, pady=10)
 
-        # For SignLabel B
-        self.sequence_signB_label = tk.Label(self.sequence_signB_frame, text="Sign Title B")
-        self.sequence_signB_label.grid(row=0, column=0, padx=10, pady=10)
+        # For OCR text B
+        self.sequence_ocr_b_label = tk.Label(self.sequence_ocr_b_frame, text="OCR text B")
+        self.sequence_ocr_b_label.grid(row=0, column=0, padx=10, pady=10)
 
-        self.sequence_signB_entry = tk.Entry(self.sequence_signB_frame, textvariable=self.text_signB, width=60)
-        self.sequence_signB_entry.grid(row=0, column=1, padx=10, pady=10)
+        self.sequence_ocr_b_entry = tk.Entry(self.sequence_ocr_b_frame, textvariable=self.text_ocr_b, width=60)
+        self.sequence_ocr_b_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.sequence_signB_button = tk.Button(self.sequence_signB_frame, text="Search Sign Title", command=lambda: self.search_sign('B'))
-        self.sequence_signB_button.grid(row=0, column=5, padx=10, pady=10)
+        self.sequence_ocr_b_button = tk.Button(self.sequence_ocr_b_frame, text="Search OCR", command=lambda: self.search_ocr('b'))
+        self.sequence_ocr_b_button.grid(row=0, column=5, padx=10, pady=10)
+
+        # For subtitle text B
+        self.sequence_subtitle_b_label = tk.Label(self.sequence_subtitle_b_frame, text="Subtitle text B")
+        self.sequence_subtitle_b_label.grid(row=0, column=0, padx=10, pady=10)
+
+        self.sequence_subtitle_b_entry = tk.Entry(self.sequence_subtitle_b_frame, textvariable=self.text_subtitle_b, width=60)
+        self.sequence_subtitle_b_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        self.sequence_subtitle_b_button = tk.Button(self.sequence_subtitle_b_frame, text="Search subtitle", command=lambda: self.search_subtitle('b'))
+        self.sequence_subtitle_b_button.grid(row=0, column=5, padx=10, pady=10)
 
 
 
@@ -322,95 +355,132 @@ class ImageApp:
     def get_objects_from_text(self):
         print('get objects')
     
-    def search_sign(self, panel):
+    def search_ocr(self, panel):
         topN = 100
         results = []
-        images_paths = []
-        if panel == 'A':
+        
+        if panel == 'a':
             image_display_frame = self.image_display_a_frame
             image_display_canvas = self.image_display_a_canvas
-        elif panel == 'B':
+        elif panel == 'b':
             image_display_frame = self.image_display_b_frame
             image_display_canvas = self.image_display_b_canvas
 
-        if (panel == "A"):
-            text_sign_a = self.text_signA.get()
-            results = search_text_ocr(text_sign_a, topN)
-        elif (panel == "B"):
-            text_sign_b = self.text_signB.get()
-            results = search_text_ocr(text_sign_b, topN)
+        # Xóa các ảnh của query trước đó
+        for label in image_display_frame.winfo_children():
+            if isinstance(label, tk.Label):
+                label.destroy()
+
+        if (panel == "a"):
+            text_ocr_a = self.text_ocr_a.get()
+            results = search_text_ocr(text_ocr_a, topN)
+        elif (panel == "b"):
+            text_ocr_b = self.text_ocr_b.get()
+            results = search_text_ocr(text_ocr_b, topN)
 
         self.update_image_display_from_path(results, panel)
         image_display_frame.update()
         image_display_canvas.configure(scrollregion=image_display_canvas.bbox('all'))
 
-        # if panel == 'A':
-        #     self.view_a = view
-        # elif panel == 'A':
-        #     self.view_b = view
-        print('finish')
+        print('finish search OCR')
 
-
-
-
-
+    def search_subtitle(self, panel):
+        topN = 100
+        results = []
         
+        if panel == 'a':
+            image_display_frame = self.image_display_a_frame
+            image_display_canvas = self.image_display_a_canvas
+        elif panel == 'b':
+            image_display_frame = self.image_display_b_frame
+            image_display_canvas = self.image_display_b_canvas
 
-    def search_next(self, selected_img):
+        # Xóa các ảnh của query trước đó
+        for label in image_display_frame.winfo_children():
+            if isinstance(label, tk.Label):
+                label.destroy()
+
+        if (panel == "a"):
+            text_subtitle_a = self.text_subtitle_a.get()
+            video_names, frame_indices = search_text_subtitle(text_subtitle_a, topN)
+        elif (panel == "b"):
+            text_subtitle_b = self.text_subtitle_b.get()
+            video_names, frame_indices = search_text_subtitle(text_subtitle_b, topN)
+
+        video_names, frame_indices, photo_images = extract_frames(video_names, frame_indices)
+
+        self.update_image_display_from_ImageTK_frame_idx(photo_images, panel, video_names, frame_indices)
+        image_display_frame.update()
+        image_display_canvas.configure(scrollregion=image_display_canvas.bbox('all'))
+        
+        print('finish search subtitle')   
+
+    def search_next(self, selected_img_path, selected_img_vid, selected_img_frame):
         print('next')
-        if selected_img == "":
-            print("No image selected.")
-            return False
-        
+
         # Xóa các ảnh của query trước đó
         for label in self.image_display_d_frame.winfo_children():
             if isinstance(label, tk.Label):
                 label.destroy()
-        
-        parse_res = parse_direc(selected_img)
-        video_name = parse_res['video_name']
-        key_frame = parse_res['kframe']
 
-        #Lấy frameidx của hình được select
-        frame_idx = get_frame_info(video_name=video_name, keyframe_name=key_frame)['frame_idx']
-        images = []
-        print("Frame index: ", frame_idx)
+        if selected_img_path != None:
+            parse_res = parse_direc(selected_img_path)
+            video_name = parse_res['video_name']
+            key_frame = parse_res['kframe']
 
-        #Lấy các frameidx từ video ra
-        video_name, frame_indices, images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_after= 30, frame_stride=15)
-        #Hiển thị lên panel
-        self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
-        self.image_display_d_frame.update()
-        self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
+            #Lấy frameidx của hình được select
+            frame_idx = get_frame_info(video_name=video_name, keyframe_name=key_frame)['frame_idx']
+            images = []
+            print("Frame index: ", frame_idx)
 
+            #Lấy các frameidx từ video ra
+            video_name, frame_indices, images = extract_frames_neighbor(video_name=video_name, frame_idx=frame_idx, num_frames_after= 30, frame_stride=15)
+            #Hiển thị lên panel
+            self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
+            self.image_display_d_frame.update()
+            self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
 
-    def search_prev(self, selected_img):
+        elif selected_img_vid != None:
+            video_name = selected_img_vid
+            frame_idx = selected_img_frame
+            video_name, frame_indices = extract_frames_neighbor(video_name=video_name, frame_idx=frame_idx, num_frames_after=50, frame_stride=20)
+            self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
+            self.image_display_d_frame.update()
+            self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
+
+    def search_prev(self, selected_img_path, selected_img_vid, selected_img_frame):
         print('prev')
-        if selected_img == "":
-            print("No image selected.")
-            return False
 
         # Xóa các ảnh của query trước đó
         for label in self.image_display_d_frame.winfo_children():
             if isinstance(label, tk.Label):
                 label.destroy()
-        
-        parse_res = parse_direc(selected_img)
-        video_name = parse_res['video_name']
-        key_frame = parse_res['kframe']
 
-        #Lấy frameidx của hình được select
-        frame_idx = get_frame_info(video_name=video_name, keyframe_name=key_frame)['frame_idx']
-        images = []
-        print("Frame index: ", frame_idx)
-       
-        video_name, frame_indices, images = extract_frames(video_name=video_name, frame_idx=frame_idx, num_frames_before= 30, frame_stride=15)
+        if selected_img_path != None:
+            parse_res = parse_direc(selected_img_path)
+            video_name = parse_res['video_name']
+            key_frame = parse_res['kframe']
 
-        #Hiển thị lên panel
-        self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
-        self.image_display_d_frame.update()
-        self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
-        
+            #Lấy frameidx của hình được select
+            frame_idx = get_frame_info(video_name=video_name, keyframe_name=key_frame)['frame_idx']
+            images = []
+            print("Frame index: ", frame_idx)
+
+            #Lấy các frameidx từ video ra
+            video_name, frame_indices, images = extract_frames_neighbor(video_name=video_name, frame_idx=frame_idx, num_frames_before= 30, frame_stride=15)
+            #Hiển thị lên panel
+            self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
+            self.image_display_d_frame.update()
+            self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
+
+        elif selected_img_vid != None:
+            video_name = selected_img_vid
+            frame_idx = selected_img_frame
+            video_name, frame_indices = extract_frames_neighbor(video_name=video_name, frame_idx=frame_idx, num_frames_before=50, frame_stride=20)
+            self.update_image_display_from_ImageTK(images, panel="d", video_name=video_name, frame_indices=frame_indices)
+            self.image_display_d_frame.update()
+            self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
+
     def search_pair(self, mode):
 
         frame_epsilon = 10
@@ -551,9 +621,6 @@ class ImageApp:
         elif panel == 'b':
             self.view_b = view
 
-    # def on_label_click(self, event):
-    #     self.config(borderwidth=2, relief="solid", highlightbackground="yellow")
-
     def update_image_display_from_path(self, image_paths, panel):
 
         image_labels = None
@@ -595,6 +662,48 @@ class ImageApp:
             image_labels.append(label)
 
         print(f"Found {len(image_paths)} images.")
+
+    def update_image_display_from_ImageTK_frame_idx(self, images, panel, video_names, frame_indices):
+
+        image_labels = None
+        image_display_frame = None
+        if panel == 'a':
+            self.image_labels_a = []
+            image_labels = self.image_labels_a
+            image_display_frame = self.image_display_a_frame
+        elif panel == 'b':
+            self.image_labels_b = []
+            image_labels = self.image_labels_b
+            image_display_frame = self.image_display_b_frame        
+        else:
+            return None
+
+        for i in range(len(images)):
+            image = images[i]
+            video_name = video_names[i]
+            frame_index = frame_indices[i]
+
+            image = image.resize((160, 90), Image.LANCZOS)
+            photo = ImageTk.PhotoImage(image)
+
+            # Create a label for the image
+            label = tk.Label(image_display_frame, image=photo)
+            label.configure(image=photo)
+            label.image = photo
+            label.grid(row=i//2, column=i%2)
+
+            # Create a label for the video name and frame index
+            filename_label = tk.Label(image_display_frame, text=f"{video_name}, {frame_index}", anchor='sw', bg='white')
+            filename_label.grid(row=i // 2, column=i % 2, sticky='sw')
+
+            # Bind a click event to the image label
+
+            label.bind("<Button-1>", lambda e, video_name=video_name, frame_index=frame_index: self.on_image_click(panel=panel, video_name=video_name, frame_index=frame_index))
+
+            # Add label to list
+            image_labels.append(label)
+
+        print(f"Found {len(images)} images.")
 
     def update_image_display_from_ImageTK(self, images, panel, video_name, frame_indices):
 
@@ -654,31 +763,39 @@ class ImageApp:
         self.image_display_d_frame.update()
         self.image_display_d_canvas.configure(scrollregion=self.image_display_d_canvas.bbox('all'))
 
-
-
-
     def on_image_click(self, panel = "", image_path=None, video_name=None, frame_index=None):
         print(f"Image clicked: {image_path}, {video_name}, {frame_index}, panel: {panel}")
         self.selected_video_path = VideosFolder + '\\' + video_name + '.mp4'
 
-        if panel == "a":
-            self.selected_img_a = image_path
-        elif panel == "b":
-            self.selected_img_b = image_path
-        elif panel == "d":
-            if not os.path.exists(ResultsCSV):                
-                os.makedirs(ResultsCSV)
-            submission_filepath = ResultsCSV + str(self.text_a.get()[:20]) + '.csv'
-            if os.path.exists(submission_filepath):
-                with open(submission_filepath, mode='a', newline='') as file:
-                    writer = csv.writer(file, delimiter=',')
-                    writer.writerow([video_name, frame_index])  
-                    file.close()
-            else:
-                with open(submission_filepath, mode='w', newline='') as file:
-                    writer = csv.writer(file, delimiter=',')
-                    writer.writerow([video_name, frame_index]) 
-                    file.close()             
+        if image_path == None:
+            if panel == "a":
+                self.selected_img_vid_a, self.selected_img_frame_a = video_name, frame_index
+                self.selected_img_path_a = None
+            elif panel == "b":
+                self.selected_img_vid_b, self.selected_img_frame_b = video_name, frame_index
+                self.selected_img_path_b = None
+            elif panel == "d":
+                if not os.path.exists(ResultsCSV):                
+                    os.makedirs(ResultsCSV)
+                submission_filepath = ResultsCSV + str(self.text_a.get()[:20]) + '.csv'
+                if os.path.exists(submission_filepath):
+                    with open(submission_filepath, mode='a', newline='') as file:
+                        writer = csv.writer(file, delimiter=',')
+                        writer.writerow([video_name, frame_index])  
+                        file.close()
+                else:
+                    with open(submission_filepath, mode='w', newline='') as file:
+                        writer = csv.writer(file, delimiter=',')
+                        writer.writerow([video_name, frame_index]) 
+                        file.close()             
+        else:
+            if panel == "a":
+                self.selected_img_path_a = image_path
+                self.selected_img_vid_a, self.selected_img_frame_a = None, None
+            elif panel == "b":
+                self.selected_img_path_b = image_path
+                self.selected_img_vid_b, self.selected_img_frame_b = None, None
+        
         self.image_path_label.config(text = image_path)
 
     def on_open_video_click(self):
@@ -696,8 +813,6 @@ class ImageApp:
         self.image_label.config(image=photo)
         self.image_label.image = photo
         self.image_path_label.config(text="Image Path: " + image_path)
-
-    
 
     def open_image(self):
         image_path = self.current_image_paths[self.current_image_index]

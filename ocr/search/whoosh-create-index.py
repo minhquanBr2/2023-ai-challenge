@@ -3,8 +3,10 @@ from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID
 from whoosh.analysis import RegexAnalyzer, LowercaseFilter, StopFilter, CharsetFilter
 from glob import glob
-from GlobalLink import OCRTextFolder, SubtitleTextFolder, VietnameseDict
 
+import sys
+sys.path.insert(0, "D:\\VSCode\\2023-ai-challenge")
+from GlobalLink import OCRTextFolder, SubtitleTextFolder, VietnameseDict
 
 def createAccentMap(path):
     file = open(path, "r", encoding="utf-8")
@@ -14,7 +16,7 @@ def createAccentMap(path):
         charmap[ord(char)] = char
     return charmap
  
-def createSearchableData(root, path):   
+def createSearchableData(root, path, indexdir):   
 
     # map từ số nguyên sang kí tự tiếng Việt unicode
     charmap = createAccentMap(path)
@@ -26,15 +28,15 @@ def createSearchableData(root, path):
     schema = Schema(path = TEXT(stored=True), video_name=TEXT(stored=True), keyframe_idx=TEXT(stored=True), 
                     content=TEXT, textdata=TEXT(stored=True, analyzer=accent_analyzer))
     
-    if not os.path.exists("indexdir"):
-        os.mkdir("indexdir")
+    if not os.path.exists(indexdir):
+        os.mkdir(indexdir)
  
     # Creating a index writer to add document as per schema
-    ix = create_in("indexdir", schema)
+    ix = create_in(indexdir, schema)
     writer = ix.writer()
  
     # filepaths = [os.path.join(root, i) for i in os.listdir(root)]
-    folders = glob(OCRTextFolder + '\\*\\')
+    folders = glob(root + '\\*\\')
     for folder in folders:
         print(folder)
         filepaths = glob(folder + '*.txt')
@@ -51,4 +53,8 @@ def createSearchableData(root, path):
  
 root = OCRTextFolder
 path = VietnameseDict
-createSearchableData(root, path)
+createSearchableData(root, path, "indexdir")
+
+root = SubtitleTextFolder
+path = VietnameseDict
+createSearchableData(root, path, "indexdirSubtitle")

@@ -7,8 +7,17 @@ import numpy as np
 import io
 from GlobalLink import VideosFolder
 import math
+from frame import VideoFrame
+from mapping_keyframe import get_frame_info
 
-def extract_frames_between(video_name, start_frame_idx, end_frame_idx, num_of_res=30):
+def extract_frames_between(video_frame_start, video_frame_end, num_of_res=30):
+
+    video_name = video_frame_start.video_name
+    frame_idx_start = int(video_frame_start.frame_idx)
+    frame_idx_end = int(video_frame_end.frame_idx)
+
+    results = []
+
     # Xác định đường dẫn đến file video
     video_path = os.path.join(VideosFolder, f"{video_name}.mp4")
     print(video_path)
@@ -16,52 +25,27 @@ def extract_frames_between(video_name, start_frame_idx, end_frame_idx, num_of_re
     # Kiểm tra xem file video có tồn tại không
     if not os.path.exists(video_path):
         print(f"File video {video_name} không tồn tại.")
-        return None  # Trả về None nếu không thể trích xuất
+        return results  
 
-    # Tạo danh sách idx để lưu các chỉ mục
-    frame_indices = []
-
-    # Tạo danh sách để lưu các PhotoImage
-    photo_images = []
-
-    # Mở video bằng OpenCV
-    cap = cv2.VideoCapture(video_path)
-
-    # Trích xuất các frame trước và sau frame_idx
-    interval = math.ceil((end_frame_idx - start_frame_idx) / num_of_res)
-    for idx in range(start_frame_idx, end_frame_idx + interval, interval):
+    # Trích xuất các frame nằm giữa
+    interval = math.ceil((frame_idx_end - frame_idx_start) / num_of_res)
+    for idx in range(frame_idx_start, frame_idx_end + interval, interval):
         if idx < 0:
             continue
-        frame_indices.append(idx)
+        results.append(VideoFrame("", video_name, "", idx, None, 0))
 
-        # Đặt con trỏ video tới frame cần trích xuất
-        cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+    return results
 
-        # Đọc frame từ video
-        ret, frame = cap.read()
+def extract_frames_neighbor(videoFrame, num_frames_before=0, num_frames_after=0, frame_stride=1):
 
-        if not ret:
-            print(f"Không thể trích xuất frame thứ {idx} từ video {video_name}.")
-            continue
-
-        # Chuyển đổi frame thành hình ảnh PIL
-        pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-        pil_image = pil_image.resize((160, 90), Image.LANCZOS)
-        photo_image = ImageTk.PhotoImage(pil_image)
-        photo_images.append(photo_image)
-
-    # Giải phóng tài nguyên video
-    cap.release()
-
-    return video_name, frame_indices, photo_images
-
-def extract_frames(video_name,
-                    frame_idx, 
-                    num_frames_before = 0, 
-                    num_frames_after = 0, 
-                    frame_stride=1):
-    # # Tạo đường dẫn đến thư mục chứa video tương ứng
-    # video_folder = os.path.join(videos_folder, 'Videos_' + video_name.split('_')[0], 'video')
+    video_name = videoFrame.video_name
+    keyframe_idx = videoFrame.keyframe_idx
+    frame_idx = videoFrame.frame_idx
+    if frame_idx == None:
+        frame_idx = get_frame_info(video_name, keyframe_idx)
+    frame_idx = int(frame_idx)
+    
+    results = []
 
     # Xác định đường dẫn đến file video
     video_path = os.path.join(VideosFolder, f"{video_name}.mp4")
@@ -70,42 +54,49 @@ def extract_frames(video_name,
     # Kiểm tra xem file video có tồn tại không
     if not os.path.exists(video_path):
         print(f"File video {video_name} không tồn tại.")
-        return None  # Trả về None nếu không thể trích xuất
-
-    # Tạo danh sách idx để lưu các chỉ mục
-    frame_indices = []
-
-    # Tạo danh sách để lưu các PhotoImage
-    photo_images = []
-
-    # Mở video bằng OpenCV
-    cap = cv2.VideoCapture(video_path)
+        return results  
 
     # Trích xuất các frame trước và sau frame_idx
-    start_idx = frame_idx - num_frames_before*frame_stride
-    end_idx = frame_idx + num_frames_after*frame_stride + 1
+    start_idx = frame_idx - num_frames_before * frame_stride
+    end_idx = frame_idx + num_frames_after * frame_stride + 1
     for idx in range(start_idx, end_idx, frame_stride):
         if idx < 0:
             continue
-        frame_indices.append(idx)
+        results.append(VideoFrame("", video_name, keyframe_idx, idx, None, 0))
 
-        # Đặt con trỏ video tới frame cần trích xuất
-        cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+    return results
 
-        # Đọc frame từ video
-        ret, frame = cap.read()
+def extract_photo(video_name, frame_idx):
+        
+    # Kiểm tra xem file video có tồn tại không
+    video_path = os.path.join(VideosFolder, f"{video_name}.mp4")
+    if not os.path.exists(video_path):
+        print(f"File video {video_name} không tồn tại.")
+        return None
+    else:
+        print(video_path)
 
-        if not ret:
-            print(f"Không thể trích xuất frame thứ {idx} từ video {video_name}.")
-            continue
+    # Mở video bằng OpenCV
+    cap = cv2.VideoCapture(video_path)
 
-        # Chuyển đổi frame thành hình ảnh PIL
-        pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-        pil_image = pil_image.resize((160, 90), Image.LANCZOS)
-        photo_image = ImageTk.PhotoImage(pil_image)
-        photo_images.append(photo_image)
+    # Đặt con trỏ video tới frame cần trích xuất
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+
+    # Đọc frame từ video
+    ret, frame = cap.read()
+
+    if not ret:
+        print(f"Không thể trích xuất frame thứ {frame_idx} từ video {video_name}.")
+        return None
+
+    # Chuyển đổi frame thành hình ảnh PIL
+    pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    pil_image = pil_image.resize((160, 90), Image.LANCZOS)
+    photo = ImageTk.PhotoImage(pil_image)
 
     # Giải phóng tài nguyên video
     cap.release()
 
-    return video_name, frame_indices, photo_images
+    return photo
+
+
