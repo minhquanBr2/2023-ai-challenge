@@ -7,14 +7,14 @@ from PIL import Image, ImageTk
 import os
 
 import sys
-sys.path.insert(0, "D:\\VSCode\\2023-ai-challenge")
+sys.path.insert(0, "D:\\University\\Contest\\AIChallenge\\2023-ai-challenge")
 from GlobalLink import KeyframeFolder, OCRTextFolder, SubtitleTextFolder
 from frame import VideoFrame
  
 
 
 def search_text_ocr(query, topN):
-    ix = open_dir("./ocr/search/indexdir")
+    ix = open_dir("D:\\University\\Contest\\AIChallenge\\2023-ai-challenge\\indexdir")
     query_str = query
     searcher = ix.searcher(weighting=scoring.Frequency)
     query = QueryParser("content", ix.schema, termclass=FuzzyTerm).parse(query_str)
@@ -37,7 +37,7 @@ def search_text_ocr(query, topN):
     return output
 
 def search_text_subtitle(query, topN):
-    ix = open_dir("./ocr/search/indexdirSubtitle")
+    ix = open_dir("D:\\University\\Contest\\AIChallenge\\2023-ai-challenge\\indexdirSubtitle")
     query_str = query
     searcher = ix.searcher(weighting=scoring.Frequency)
     query = QueryParser("content", ix.schema, termclass=FuzzyTerm).parse(query_str)

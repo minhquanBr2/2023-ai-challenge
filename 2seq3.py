@@ -400,11 +400,11 @@ class ImageApp:
 
         if (panel == "a"):
             text_subtitle_a = self.text_subtitle_a.get()
-            self.result_video_frames_a = search_text_ocr(text_subtitle_a, topN)
+            self.result_video_frames_a = search_text_subtitle(text_subtitle_a, topN)
             self.update_image_display(self.result_video_frames_a, panel)
         elif (panel == "b"):
             text_subtitle_b = self.text_subtitle_b.get()
-            self.result_video_frames_b = search_text_ocr(text_subtitle_b, topN)
+            self.result_video_frames_b = search_text_subtitle(text_subtitle_b, topN)
             self.update_image_display(self.result_video_frames_b, panel)
 
         image_display_frame.update()
@@ -569,7 +569,7 @@ class ImageApp:
             path = video_frame.path
             video_name = video_frame.video_name
             frame_idx = video_frame.frame_idx
-            print(path, video_name, frame_idx)
+            # print(path, video_name, frame_idx)
 
             if path != "":
                 try: 

@@ -80,7 +80,7 @@ def extract_photo(video_name, frame_idx):
     cap = cv2.VideoCapture(video_path)
 
     # Đặt con trỏ video tới frame cần trích xuất
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, int(frame_idx))
 
     # Đọc frame từ video
     ret, frame = cap.read()

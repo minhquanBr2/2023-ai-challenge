@@ -5,7 +5,7 @@ from whoosh.analysis import RegexAnalyzer, LowercaseFilter, StopFilter, CharsetF
 from glob import glob
 
 import sys
-sys.path.insert(0, "D:\\VSCode\\2023-ai-challenge")
+sys.path.insert(0, "D:\\University\\Contest\\AIChallenge\\2023-ai-challenge")
 from GlobalLink import OCRTextFolder, SubtitleTextFolder, VietnameseDict
 
 def createAccentMap(path):
